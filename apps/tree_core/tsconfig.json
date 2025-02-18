@@ -1,0 +1,13 @@
+{
+    "extends": "@repo/typescript-config/base_backend.json",
+    "files": [
+        "node_modules/jest-expect-message/types/index.d.ts"
+    ],
+    "include": [
+        "./src/**/*",
+        "./test/**/*"
+    ],
+    "exclude": [
+        "jest.config.cjs"
+    ],
+}

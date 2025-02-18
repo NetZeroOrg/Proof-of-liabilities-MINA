@@ -1,3 +1,4 @@
+import { Field } from "o1js"
 import { Direction } from "./types"
 
 export class Height {
@@ -8,7 +9,7 @@ export class Height {
     }
 
     public maxNodes(): number {
-        return 1 << this._inner
+        return 2 ** this._inner
     }
 
     public enoughLeafNodes(num: number): boolean {
@@ -23,6 +24,10 @@ export class Height {
     public getParentHeight(): Height {
         return new Height(this._inner + 1)
     }
+
+    public toField(): Field {
+        return Field(this._inner)
+    }
 }
 
 /**
@@ -30,14 +35,14 @@ export class Height {
  * x is offset from the leftmost node in the tree
  * y is the height of the node in the tree
  * 
- * max value of x is 2^64 - 1
+ * max value of x is 2^53 - 1
  */
 export class NodePosition {
     x: number = 0
     y: Height = new Height(0)
 
     constructor(x: number, y: Height) {
-        if (x < 0) {
+        if (x < 0 || x > 2 ** 53 - 1) {
             throw new Error("x cannot be negative")
         }
         this.x = x
@@ -57,5 +62,9 @@ export class NodePosition {
 
     public xCord(): number {
         return this.x
+    }
+
+    public toFields(): [Field, Field] {
+        return [Field(this.x), this.y.toField()]
     }
 }

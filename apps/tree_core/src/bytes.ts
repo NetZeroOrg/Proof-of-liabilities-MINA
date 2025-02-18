@@ -16,6 +16,10 @@ export class Bytes32 {
         return num
     }
 
+    toBigint(): bigint {
+        return BigInt(this.toNumber())
+    }
+
     toField(): Field {
         return Field(this.toNumber())
     }
