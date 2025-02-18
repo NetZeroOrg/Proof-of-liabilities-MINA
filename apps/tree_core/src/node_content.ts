@@ -1,4 +1,4 @@
-import { Field, Group, Poseidon } from "o1js";
+import { CircuitString, Field, Group, Poseidon } from "o1js";
 import { newLeafParams, newPaddingNodeParams, Nullable } from "./types";
 import { PedersenCommitment } from "./commitment";
 import { rangeCheckProgram, RangeCheckProof } from "circuits/dist/programs/index"
@@ -29,10 +29,11 @@ export class Node {
                 throw new Error(`Balance  at ${i} is undefined`);
             }
         }
-        const baseProof = await compileRangeCheckProgram.base(Field(totalLiabilities))
         const commitment = PedersenCommitment.defaultCommitment(totalLiabilities, bfField);
         // Hash of `H("leaf" | user_id | user_salt)`
-        const hash = Poseidon.hash([Field("leaf"), Field(record.user), userSecret.toField()]);
+        const hash = Poseidon.hash([Field(BigInt("leaf".split('').map(char => char.charCodeAt(0)).join(''))), Field(record.user), userSecret.toField()]);
+        const baseProof = await compileRangeCheckProgram.base(Field(totalLiabilities))
+
         return new Node(totalLiabilities, blindingFactor.toBigint(), commitment, hash, baseProof.proof);
     }
 
@@ -43,7 +44,7 @@ export class Node {
         const liability = BigInt(0);
         const commitment = PedersenCommitment.defaultCommitment(liability, bfField);
         // Hash of H("padding" | position | user_salt)
-        const hash = Poseidon.hash([Field("padding"), ...position.toFields(), userSecret.toField()]);
+        const hash = Poseidon.hash([Field(BigInt("padding".split('').map(char => char.charCodeAt(0)).join(''))), ...position.toFields(), userSecret.toField()]);
         const baseProof = await compiledRangeCheckProgram.base(Field(liability))
         return new Node(liability, blidingFactor.toBigint(), commitment, hash, baseProof.proof);
     }

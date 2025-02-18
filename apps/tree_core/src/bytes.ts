@@ -23,4 +23,10 @@ export class Bytes32 {
     toField(): Field {
         return Field(this.toNumber())
     }
+
+}
+
+export function randomBytes32(): Bytes32 {
+    const bits: boolean[] = Array.from({ length: 256 }, () => Math.random() < 0.5);
+    return new Bytes32(bits as unknown as bytes32);
 }

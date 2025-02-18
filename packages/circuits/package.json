@@ -3,8 +3,6 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "test": "jest --config jest.config.ts",
-    "test:watch": "jest --config jest.config.ts --watch",
     "lint": "eslint .",
     "build": "tsc"
   },
