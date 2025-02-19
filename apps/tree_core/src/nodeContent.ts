@@ -1,4 +1,4 @@
-import { CircuitString, Field, Group, Poseidon } from "o1js";
+import { Field, Group, Poseidon } from "o1js";
 import { newLeafParams, newPaddingNodeParams, Nullable } from "./types";
 import { PedersenCommitment } from "./commitment";
 import { rangeCheckProgram, RangeCheckProof } from "circuits/dist/programs/index"
@@ -31,22 +31,24 @@ export class Node {
         }
         const commitment = PedersenCommitment.defaultCommitment(totalLiabilities, bfField);
         // Hash of `H("leaf" | user_id | user_salt)`
-        const hash = Poseidon.hash([Field(BigInt("leaf".split('').map(char => char.charCodeAt(0)).join(''))), Field(record.user), userSecret.toField()]);
+        const hash = Poseidon.hash([Field(10810197102n), Field(record.user), userSecret.toField()]);
+        //                              ^ "leaf" as a number
         const baseProof = await compileRangeCheckProgram.base(Field(totalLiabilities))
 
         return new Node(totalLiabilities, blindingFactor.toBigint(), commitment, hash, baseProof.proof);
     }
 
     static async newPaddingNode<N extends number>(
-        { userSecret, blidingFactor, position, compiledRangeCheckProgram }: newPaddingNodeParams<N>
+        { userSecret, blindingFactor, position, compiledRangeCheckProgram }: newPaddingNodeParams<N>
     ): Promise<Node> {
-        const bfField = blidingFactor.toField();
+        const bfField = blindingFactor.toField();
         const liability = BigInt(0);
         const commitment = PedersenCommitment.defaultCommitment(liability, bfField);
         // Hash of H("padding" | position | user_salt)
-        const hash = Poseidon.hash([Field(BigInt("padding".split('').map(char => char.charCodeAt(0)).join(''))), ...position.toFields(), userSecret.toField()]);
+        const hash = Poseidon.hash([Field(11297100100105110103n), ...position.toFields(), userSecret.toField()]);
+        //                              ^ "padding" as a number
         const baseProof = await compiledRangeCheckProgram.base(Field(liability))
-        return new Node(liability, blidingFactor.toBigint(), commitment, hash, baseProof.proof);
+        return new Node(liability, blindingFactor.toBigint(), commitment, hash, baseProof.proof);
     }
 
     static async merge(leftChild: Node, rightChild: Node): Promise<Node> {
