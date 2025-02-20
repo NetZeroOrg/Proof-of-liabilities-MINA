@@ -2,6 +2,8 @@ import { Field, Group, Poseidon } from "o1js";
 import { newLeafParams, newPaddingNodeParams, Nullable } from "./types";
 import { PedersenCommitment } from "./commitment";
 import { rangeCheckProgram, RangeCheckProof } from "circuits/dist/programs/index"
+
+
 export class Node {
     liabilties: bigint;
     bliding_factor: bigint;
@@ -39,7 +41,7 @@ export class Node {
     }
 
     static async newPaddingNode<N extends number>(
-        { userSecret, blindingFactor, position, compiledRangeCheckProgram }: newPaddingNodeParams<N>
+        { userSecret, blindingFactor, position, compiledRangeCheckProgram }: newPaddingNodeParams
     ): Promise<Node> {
         const bfField = blindingFactor.toField();
         const liability = BigInt(0);

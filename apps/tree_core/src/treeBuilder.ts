@@ -57,12 +57,16 @@ async function singleThreadedTreeBuilder(
             if (nodePos.getDirection() == Direction.Left) {
                 pairs.push({ left: nodes[i]!, right: undefined })
             } else if (nodePos.getDirection() == Direction.Right) {
-                const lastPair = pairs[pairs.length - 1]!
-                if (lastPair.left) {
-                    const leftPos = lastPair.left[0]
-                    const isSibling = leftPos.getSiblingPosition().equals(nodePos)
-                    if (isSibling) {
-                        lastPair.right = nodes[i]!
+                const lastPair = pairs[pairs.length - 1]
+                if (lastPair) {
+                    if (lastPair.left) {
+                        const leftPos = lastPair.left[0]
+                        const isSibling = leftPos.getSiblingPosition().equals(nodePos)
+                        if (isSibling) {
+                            lastPair.right = nodes[i]!
+                        } else {
+                            pairs.push({ left: undefined, right: nodes[i]! })
+                        }
                     } else {
                         pairs.push({ left: undefined, right: nodes[i]! })
                     }
@@ -71,12 +75,16 @@ async function singleThreadedTreeBuilder(
                 }
             }
         }
-        nodes = await Promise.all(pairs.map(async (pair) => await mergePair(pair, paddingNodeClosure)))
+        const newNodes = []
+        for (let i = 0; i < pairs.length; i++) {
+            newNodes.push(await mergePair(pairs[i]!, paddingNodeClosure))
+        }
+        nodes = newNodes
     }
     return new Store(nodes.pop()![1], nodeMap, height)
 }
 
-interface TreeParams {
+export interface TreeParams {
     masterSecret: Bytes32,
     saltS: Bytes32,
     saltB: Bytes32,
@@ -102,15 +110,18 @@ export class TreeBuilder<N extends number> {
     public async buildSingleThreaded(compileRangeCheckProgram: typeof rangeCheckProgram): Promise<Store> {
         const recordMap = new Map<string, NodePosition>();
         const zeroHeight = new Height(0);
-        const leafNode: [NodePosition, Node][] = await Promise.all(this.records.map(async (record) => {
+
+
+        const leafNodes: [NodePosition, Node][] = []
+        for (let i = 0; i < this.records.length; i++) {
             const newXCord = this.xCordGen.genXCord();
             const nodePos = new NodePosition(newXCord, zeroHeight);
             const masterSecret = kdf(null, Bytes32.fromNumber(newXCord), this.treeParams.masterSecret);
             const blindingFactor = kdf(this.treeParams.saltB, null, masterSecret)
             const userSecret = kdf(this.treeParams.saltS, null, masterSecret)
-            recordMap.set(record.user, nodePos)
-            return [nodePos, await Node.newLeaf({ record, compileRangeCheckProgram, userSecret, blindingFactor })]
-        }))
+            recordMap.set(this.records[i]!.user, nodePos)
+            leafNodes.push([nodePos, await Node.newLeaf({ record: this.records[i]!, compileRangeCheckProgram, userSecret, blindingFactor })])
+        }
 
         const paddingNodeFn = (position: NodePosition): newPaddingNodeParams => {
             const padSecret = kdf(null, Bytes32.fromNodePos(position), this.treeParams.masterSecret)
@@ -118,8 +129,8 @@ export class TreeBuilder<N extends number> {
             const userSecret = kdf(this.treeParams.saltS, null, padSecret)
             return { userSecret, blindingFactor, compiledRangeCheckProgram: compileRangeCheckProgram, position }
         }
-        const height = Height.fromNodesLen(leafNode.length)
+        const height = Height.fromNodesLen(leafNodes.length)
 
-        return await singleThreadedTreeBuilder(leafNode, height, paddingNodeFn)
+        return await singleThreadedTreeBuilder(leafNodes, height, paddingNodeFn)
     }
 }

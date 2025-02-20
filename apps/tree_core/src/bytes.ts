@@ -53,9 +53,14 @@ export class Bytes32 {
     }
 
     static fromNodePos(pos: NodePosition): Bytes32 {
-        const xBits = Array.from({ length: 53 }, (_, i) => (pos.x & (1 << i)) !== 0);
-        const yBits = Array.from({ length: 8 }, (_, i) => (pos.y._inner & (1 << i)) !== 0);
-        const newBits = xBits.concat(yBits).fill(false, 256);
+        const xBits = Array.from({ length: 53 }, (_, i) => (pos.x & (1 << i)) !== 0).fill(false);
+        const yBits = Array.from({ length: 8 }, (_, i) => (pos.y._inner & (1 << i)) !== 0).fill(false);
+        const newBits = xBits.concat(yBits);
+        if (newBits.length !== 256) {
+            for (let i = newBits.length; i < 256; i++) {
+                newBits.push(false);
+            }
+        }
         return new Bytes32(newBits);
     }
 }
