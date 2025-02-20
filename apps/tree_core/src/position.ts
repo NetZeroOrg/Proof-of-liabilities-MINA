@@ -67,4 +67,12 @@ export class NodePosition {
     public toFields(): [Field, Field] {
         return [Field(this.x), this.y.toField()]
     }
+
+    public equals(other: NodePosition): boolean {
+        return this.x == other.x && this.y == other.y
+    }
+
+    public getParentPosition(): NodePosition {
+        return new NodePosition(this.x >> 1, this.y.getParentHeight())
+    }
 }

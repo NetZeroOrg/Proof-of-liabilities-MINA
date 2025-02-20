@@ -27,7 +27,7 @@ export interface newLeafParams<N extends number> {
     compileRangeCheckProgram: typeof rangeCheckProgram
 }
 
-export interface newPaddingNodeParams<N extends number> {
+export interface newPaddingNodeParams {
     userSecret: Bytes32,
     blindingFactor: Bytes32
     position: NodePosition,
