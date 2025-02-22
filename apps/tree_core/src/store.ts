@@ -1,4 +1,4 @@
-import { Node } from "./nodeContent";
+import { Node } from "./node";
 import { Height, NodePosition } from "./position";
 
 export class Store {

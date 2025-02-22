@@ -75,4 +75,8 @@ export class NodePosition {
     public getParentPosition(): NodePosition {
         return new NodePosition(this.x >> 1, this.y.getParentHeight())
     }
+
+    public yCord(): number {
+        return this.y._inner
+    }
 }

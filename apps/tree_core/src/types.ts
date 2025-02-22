@@ -34,6 +34,12 @@ export interface newPaddingNodeParams {
     compiledRangeCheckProgram: typeof rangeCheckProgram
 }
 
+export interface newPaddingPathNode {
+    userSecret: Bytes32,
+    blindingFactor: Bytes32
+    position: NodePosition
+}
+
 export enum Direction {
     Left,
     Right
