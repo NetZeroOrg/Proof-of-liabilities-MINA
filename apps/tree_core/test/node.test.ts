@@ -1,9 +1,8 @@
 import { merge, newLeaf, newPaddingNode, Node } from "../src/node"
 import { DBRecord } from "../src/types"
-import { Bytes32, randomBytes32 } from "../src/bytes"
+import { randomBytes32 } from "../src/bytes"
 import { rangeCheckProgram } from "circuits/dist/programs"
 import { Height, NodePosition } from "../src/position"
-import { Provable } from "o1js"
 
 describe("Node testing", () => {
     const record: DBRecord<3> = {

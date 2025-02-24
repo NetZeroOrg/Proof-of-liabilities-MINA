@@ -1,0 +1,3 @@
+[submodule "mina-attestations"]
+	path = packages/mina-attestations
+	url = https://github.com/zksecurity/mina-attestations.git

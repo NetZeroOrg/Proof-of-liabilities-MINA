@@ -6,6 +6,7 @@ import { Store } from "./store";
 import { Bytes32 } from "./bytes";
 import { XCordGenerator } from "./xCordGen";
 import { kdf } from "./kdf";
+import { createClient } from "redis";
 export type paddingNodeContent = (nodePos: NodePosition) => newPaddingNodeParams;
 export type paddingPathNodeContent = (nodePos: NodePosition) => newPaddingPathNode;
 interface Pair {
@@ -70,6 +71,7 @@ async function singleThreadedTreeBuilder(
     height: Height,
     paddingNodeClosure: paddingNodeContent,
     storeDepth?: number,
+    treeParams?: TreeParams
 ) {
     const nodeMap = new Map<NodePosition, Node>();
     const maxLeafs = height.maxNodes()
@@ -80,7 +82,7 @@ async function singleThreadedTreeBuilder(
     for (let y = 0; y < height._inner; y++) {
         let pairs: Pair[] = []
         for (let i = 0; i < nodes.length; i += 1) {
-            if (y <= (storeDepth ?? 0)) {
+            if (y <= (storeDepth ?? height._inner)) {
                 nodeMap.set(nodes[i]![0], nodes[i]![1])
             }
             const nodePos = nodes[i]![0]
@@ -111,7 +113,7 @@ async function singleThreadedTreeBuilder(
         }
         nodes = newNodes
     }
-    return new Store(nodes.pop()![1], nodeMap, height)
+    return new Store(nodes.pop()![1], nodeMap, height, treeParams)
 }
 
 /**
@@ -169,6 +171,14 @@ export interface TreeParams {
     saltB: Bytes32,
 }
 
+export function treeParamsToJSON(treeParams: TreeParams) {
+    return {
+        masterSecret: treeParams.masterSecret.toString(),
+        saltS: treeParams.saltS.toString(),
+        saltB: treeParams.saltB.toString()
+    }
+}
+
 export class TreeBuilder<N extends number> {
     records: DBRecord<N>[];
     xCordGen: XCordGenerator;
@@ -186,7 +196,7 @@ export class TreeBuilder<N extends number> {
         return new TreeBuilder(records, height, treeParams)
     }
 
-    public async buildSingleThreaded(compileRangeCheckProgram: typeof rangeCheckProgram): Promise<[Store, Map<string, NodePosition>]> {
+    public async buildSingleThreaded(compileRangeCheckProgram: typeof rangeCheckProgram, saveRecordMap?: boolean, reddisConnectionURI?: string): Promise<[Store, Map<string, NodePosition>]> {
         const recordMap = new Map<string, NodePosition>();
         const zeroHeight = new Height(0);
 
@@ -210,6 +220,19 @@ export class TreeBuilder<N extends number> {
         }
         const height = Height.fromNodesLen(leafNodes.length)
 
-        return [await singleThreadedTreeBuilder(leafNodes, height, paddingNodeFn), recordMap]
+        if (saveRecordMap) {
+            const client = createClient({ url: reddisConnectionURI })
+            client.on("error", function (error) {
+                console.error(error);
+                throw error;
+            })
+            await client.connect()
+            for (const [key, value] of recordMap.entries()) {
+                await client.set(key, value.toString())
+            }
+            await client.disconnect()
+        }
+
+        return [await singleThreadedTreeBuilder(leafNodes, height, paddingNodeFn, undefined, this.treeParams), recordMap]
     }
 }

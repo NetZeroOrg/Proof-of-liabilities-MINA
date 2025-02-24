@@ -79,4 +79,8 @@ export class NodePosition {
     public yCord(): number {
         return this.y._inner
     }
+
+    public toString(): string {
+        return `(${this.x},${this.y._inner})`
+    }
 }

@@ -62,6 +62,18 @@ function toPathNode(node: Node): PathNode {
     return { commitment: node.commitment, hash: node.hash };
 }
 
+function toRedisObject(node: Node) {
+
+    const hash = node.hash.toJSON()
+    return {
+        liabilities: node.liabilities.toString(),
+        blinding_factor: node.blinding_factor.toString(),
+        commitmentX: node.commitment.toJSON().x,
+        commitmentY: node.commitment.toJSON().y,
+        hash,
+    };
+}
+
 
 /**
  * Represents a node in the path of inclusion proof of the tree
@@ -89,4 +101,4 @@ function mergePathNodes(left: PathNode, right: PathNode): PathNode {
 
 
 
-export { newLeaf, newPaddingNode, merge, newPadPathNode, mergePathNodes, toPathNode };
+export { newLeaf, newPaddingNode, merge, newPadPathNode, mergePathNodes, toPathNode, toRedisObject };

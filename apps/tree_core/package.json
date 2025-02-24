@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "tsc src/index.ts --outDir dist",
+    "build": "tsc --outDir dist",
     "test": "jest --config jest.config.ts",
     "test:watch": "jest --config jest.config.ts --watch"
   },
@@ -12,7 +12,8 @@
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "babel-jest": "^29.7.0",
-    "circuits": "workspace:*"
+    "circuits": "workspace:*",
+    "redis": "^4.7.0"
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",

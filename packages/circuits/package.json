@@ -8,7 +8,8 @@
   },
   "dependencies": {
     "@repo/eslint-config": "workspace:*",
-    "@repo/typescript-config": "workspace:*"
+    "@repo/typescript-config": "workspace:*",
+    "mina-attestations": "0.3.6"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

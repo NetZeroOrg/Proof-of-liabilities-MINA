@@ -79,7 +79,6 @@ export interface LiabilitiesProof {
  * @returns the liabilities proof for the leaf node
  */
 export const generateProof = (treeParams: TreeParams, treeStore: Store, position: NodePosition): LiabilitiesProof => {
-
     const paddingNodeFn = (position: NodePosition): newPaddingPathNode => {
         const padSecret = kdf(null, Bytes32.fromNodePos(position), treeParams.masterSecret)
         const blindingFactor = kdf(treeParams.saltB, null, padSecret)

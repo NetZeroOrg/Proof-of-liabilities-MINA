@@ -20,6 +20,10 @@ export class Bytes32 {
         return BigInt(this.toNumber());
     }
 
+    toString(): string {
+        return this.toNumber().toString();
+    }
+
     toField(): Field {
         return Field(this.toNumber());
     }
