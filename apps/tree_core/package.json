@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc --outDir dist",
     "test": "jest --config jest.config.ts -t 'Tree save and load test' ",
-    "test:watch": "jest --config jest.config.ts --watch"
+    "test:watch": "jest --config jest.config.ts --watch",
+    "generate-dummy-data": "build && node --experimental-vm-modules --experimental-wasm-modules dist/index.js"
   },
   "dependencies": {
     "@babel/preset-env": "^7.26.9",

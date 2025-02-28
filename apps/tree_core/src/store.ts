@@ -3,7 +3,6 @@ import { fromRedisObject, Node, toRedisObject } from "./node.js";
 import { Height, NodePosition } from "./position.js";
 import { TreeParams, treeParamsToJSON } from "./treeBuilder.js";
 import { Bytes32 } from "./bytes.js";
-import { RangeCheckProof } from "circuits/dist/index.js";
 
 const NODE_PREFIX = "nodes"
 const TREE_PARAMS = "treeParams"
@@ -63,6 +62,7 @@ export class Store {
         }
 
         client.hSet(ROOT_KEY, toRedisObject(this.root))
+
     }
 
 

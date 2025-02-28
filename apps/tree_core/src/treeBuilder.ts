@@ -232,7 +232,6 @@ export class TreeBuilder<N extends number> {
             for (const [key, value] of recordMap.entries()) {
                 await client.set(USER_KEY_PREFIX + key, value.toString())
             }
-            await client.disconnect()
         }
 
         return [await singleThreadedTreeBuilder(leafNodes, height, paddingNodeFn, this.treeParams), recordMap]

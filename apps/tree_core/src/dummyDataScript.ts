@@ -37,6 +37,7 @@ export async function createRandomDataTree(
     numAssets: number,
     redisConnectionURL?: string
 ) {
+    console.time("Full flow")
     const data = generateAssetData(numUsers, numAssets);
     const records = data.map((data) => {
         const user = data[0]!;
@@ -59,5 +60,6 @@ export async function createRandomDataTree(
     console.time("Save Time")
     await store.save(redisConnectionURL)
     console.timeEnd("Save Time")
+    console.timeEnd("Full flow")
 }
 
