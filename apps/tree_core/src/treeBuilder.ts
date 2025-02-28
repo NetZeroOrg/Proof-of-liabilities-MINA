@@ -1,5 +1,5 @@
 import { rangeCheckProgram } from "circuits/dist/index.js";
-import { merge, mergePathNodes, newLeaf, newPaddingNode, newPadPathNode, Node, PathNode } from "./node.js";
+import { logNode, merge, mergePathNodes, newLeaf, newPaddingNode, newPadPathNode, Node, PathNode } from "./node.js";
 import { Height, NodePosition } from "./position.js";
 import { DBRecord, Direction, newPaddingNodeParams, newPaddingPathNode } from "./types.js";
 import { Store } from "./store.js";
@@ -76,7 +76,7 @@ async function singleThreadedTreeBuilder(
     treeParams: TreeParams,
     storeDepth?: number,
 ) {
-    const nodeMap = new Map<NodePosition, Node>();
+    const nodeMap = new Map<number, Node>();
     const maxLeafs = height.maxNodes()
     if (leafNodes.length > maxLeafs) {
         throw new Error(`Too many leaf nodes, max is ${maxLeafs}`)
@@ -85,8 +85,8 @@ async function singleThreadedTreeBuilder(
     for (let y = 0; y < height._inner; y++) {
         let pairs: Pair[] = []
         for (let i = 0; i < nodes.length; i += 1) {
-            if (y <= (storeDepth ?? height._inner)) {
-                nodeMap.set(nodes[i]![0], nodes[i]![1])
+            if (y < (storeDepth ?? height._inner)) {
+                nodeMap.set(nodes[i]![0].toMapKey(), nodes[i]![1])
             }
             const nodePos = nodes[i]![0]
             if (nodePos.getDirection() == Direction.Left) {
@@ -94,20 +94,15 @@ async function singleThreadedTreeBuilder(
             } else if (nodePos.getDirection() == Direction.Right) {
                 const lastPair = pairs[pairs.length - 1]
                 if (lastPair) {
-                    if (lastPair.left) {
-                        const leftPos = lastPair.left[0]
-                        const isSibling = leftPos.getSiblingPosition().equals(nodePos)
-                        if (isSibling) {
-                            lastPair.right = nodes[i]!
-                        } else {
-                            pairs.push({ left: undefined, right: nodes[i]! })
-                        }
+                    const isSibling = lastPair.left ? lastPair.left[0].getSiblingPosition().equals(nodePos) && lastPair.right === undefined : false
+                    if (isSibling) {
+                        lastPair.right = nodes[i]!
                     } else {
                         pairs.push({ left: undefined, right: nodes[i]! })
                     }
-                } else {
-                    pairs.push({ left: undefined, right: nodes[i]! })
                 }
+            } else {
+                pairs.push({ left: undefined, right: nodes[i]! })
             }
         }
         const newNodes = []
@@ -214,6 +209,10 @@ export class TreeBuilder<N extends number> {
             recordMap.set(this.records[i]!.user, nodePos)
             leafNodes.push([nodePos, await newLeaf({ record: this.records[i]!, compileRangeCheckProgram, userSecret, blindingFactor })])
         }
+
+        leafNodes.sort((a, b) => a[0].xCord() - b[0].xCord());
+
+        this.xCordGen.flush()
 
         const paddingNodeFn = (position: NodePosition): newPaddingNodeParams => {
             const padSecret = kdf(null, Bytes32.fromNodePos(position), this.treeParams.masterSecret)

@@ -1,5 +1,5 @@
 import { rangeCheckProgram } from "circuits/dist/programs"
-import { loadRandomUserFromDB, randomRecords } from "../src/testUtil"
+import { generateRootFromPath, loadRandomUserFromDB, randomRecords } from "../src/testUtil"
 import { TreeBuilder, TreeParams } from "../src/treeBuilder"
 import { Height, NodePosition } from "../src/position"
 import { randomBytes32 } from "../src/bytes"
@@ -22,13 +22,18 @@ describe("Basic Tree Test", () => {
     })
     it("should make a tree", async () => {
         [treeStore, recordMap] = await treeBuilder.buildSingleThreaded(rangeCheckProgram)
-        console.log(treeStore)
         expect(treeStore.root).toBeDefined()
         expect(treeStore).toBeDefined()
     }, 1_000_000)
     it("should generate a path and verify root", async () => {
         const path = generateProof(treeStore, recordMap.get(randRecord[0]!.user)!)
-        console.log(path)
+        const root = generateRootFromPath(path, treeStore, recordMap.get(randRecord[0]!.user)!)
+        expect(
+            root.hash.equals(treeStore.root.hash).toBoolean()
+        ).toBe(true)
+        expect(
+            root.commitment.equals(treeStore.root.commitment).toBoolean()
+        ).toBe(true)
     })
 })
 
@@ -39,12 +44,17 @@ describe("Tree save and load test", () => {
     })
     it("should save the tree", async () => {
         await createRandomDataTree(3, 10)
-    })
+    }, 1_000_000)
     it("should load store from redis and generate path", async () => {
         const store = await Store.loadFromDB()
-        const [nodePos, user] = await loadRandomUserFromDB()
-        console.log("generating for", user)
+        const nodePos = new NodePosition(0, new Height(0))
         const proof = generateProof(store, nodePos)
-        console.log(proof)
+        const root = generateRootFromPath(proof, store, nodePos)
+        expect(
+            root.hash.equals(store.root.hash).toBoolean()
+        ).toBe(true)
+        expect(
+            root.commitment.equals(store.root.commitment).toBoolean()
+        ).toBe(true)
     }, 1_000_000)
 })

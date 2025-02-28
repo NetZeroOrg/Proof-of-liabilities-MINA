@@ -121,6 +121,9 @@ function mergePathNodes(left: PathNode, right: PathNode): PathNode {
     return { commitment, hash };
 }
 
+function logNode(msg: string, node: Node | PathNode) {
+    console.log(msg + "Node: ", node.commitment.toJSON(), node.hash.toJSON())
+}
 
 
-export { newLeaf, newPaddingNode, merge, newPadPathNode, mergePathNodes, toPathNode, toRedisObject, fromRedisObject };
+export { newLeaf, newPaddingNode, merge, newPadPathNode, mergePathNodes, toPathNode, toRedisObject, fromRedisObject, logNode };

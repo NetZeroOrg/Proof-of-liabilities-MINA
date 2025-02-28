@@ -27,7 +27,6 @@ function generateAssetData(numUsers: number, numAssets: number, outputFile: stri
     const output = { headers, data };
 
     fs.writeFileSync(outputFile, JSON.stringify(output, null, 2));
-    console.log(`Data generation complete. File saved as '${outputFile}'.`);
 
     return data;
 }

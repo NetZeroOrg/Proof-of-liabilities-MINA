@@ -8,9 +8,10 @@ import { kdf } from "./kdf.js";
 import { Bytes32 } from "./bytes.js";
 
 export type Siblings = PathNode[]
+export type Lefts = boolean[]
 
-export const generatePath = (treeStore: Store, position: NodePosition, paddingNodeContent: paddingPathNodeContent): Siblings => {
-    const leafNode = treeStore.map.get(position)
+export const generatePath = (treeStore: Store, position: NodePosition, paddingNodeContent: paddingPathNodeContent): [Siblings, Lefts] => {
+    const leafNode = treeStore.map.get(position.toMapKey())
     if (leafNode == undefined) {
         throw new Error("Leaf node is undefined")
     }
@@ -18,15 +19,14 @@ export const generatePath = (treeStore: Store, position: NodePosition, paddingNo
     let currentPos = position
     const lefts = []
 
-    for (let y = 0; y <= treeStore.height._inner; y++) {
+    for (let y = 0; y < treeStore.height._inner; y++) {
         const siblingPos = currentPos.getSiblingPosition()
         lefts.push(siblingPos.isLeft())
-        const sibling = treeStore.map.get(siblingPos)
+        const sibling = treeStore.map.get(siblingPos.toMapKey())
         if (sibling) {
             siblings.push(toPathNode(sibling))
         } else {
             if (y == 0) {
-                // padding node
                 siblings.push(newPadPathNode(paddingNodeContent(siblingPos)))
             } else {
                 const minXCord = (1 << siblingPos.yCord()) * siblingPos.xCord()
@@ -34,7 +34,7 @@ export const generatePath = (treeStore: Store, position: NodePosition, paddingNo
                 const leafNodes: [NodePosition, PathNode][] = []
                 for (let x = minXCord; x <= maxXCord; x++) {
                     const leafPos = new NodePosition(x, new Height(0))
-                    const leaf = treeStore.map.get(leafPos)
+                    const leaf = treeStore.map.get(leafPos.toMapKey())
                     if (leaf) {
                         leafNodes.push([leafPos, toPathNode(leaf)])
                     }
@@ -47,23 +47,22 @@ export const generatePath = (treeStore: Store, position: NodePosition, paddingNo
                     siblings.push(subTreeRoot)
                 }
             }
-            currentPos = currentPos.getParentPosition()
         }
+        currentPos = currentPos.getParentPosition()
     }
-    return siblings
+    return [siblings, lefts]
 }
 
 export interface MerkleWitness {
     path: Siblings
-    root: Node
+    lefts: Lefts
     aggregatedRangeProof: RangeCheckProof
 }
 
 export const generateMerkleWitness = (treeStore: Store, position: NodePosition, paddingNodeContent: paddingPathNodeContent): MerkleWitness => {
-    const path = generatePath(treeStore, position, paddingNodeContent)
-    const root = treeStore.root
+    const [path, lefts] = generatePath(treeStore, position, paddingNodeContent)
     const aggregatedRangeProof = treeStore.root.rangeProof!
-    return { path, root, aggregatedRangeProof }
+    return { path, lefts, aggregatedRangeProof }
 }
 
 export interface LiabilitiesProof {
@@ -85,6 +84,7 @@ export const generateProof = (treeStore: Store, position: NodePosition): Liabili
         const userSecret = kdf(treeStore.treeParams.saltS, null, padSecret)
         return { userSecret, blindingFactor, position }
     }
+
     const witness = generateMerkleWitness(treeStore, position, paddingNodeFn)
     const masterSecret = kdf(null, Bytes32.fromNumber(position.xCord()), treeStore.treeParams.masterSecret);
     const blindingFactor = kdf(treeStore.treeParams.saltB, null, masterSecret)

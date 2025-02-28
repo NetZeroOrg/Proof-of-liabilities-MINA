@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc --outDir dist",
-    "test": "jest --config jest.config.ts",
+    "test": "jest --config jest.config.ts -t 'Tree save and load test' ",
     "test:watch": "jest --config jest.config.ts --watch"
   },
   "dependencies": {

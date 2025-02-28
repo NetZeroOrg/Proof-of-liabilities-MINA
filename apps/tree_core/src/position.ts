@@ -69,7 +69,7 @@ export class NodePosition {
     }
 
     public equals(other: NodePosition): boolean {
-        return this.x == other.x && this.y == other.y
+        return this.x == other.x && this.y._inner == other.y._inner
     }
 
     public getParentPosition(): NodePosition {
@@ -82,6 +82,19 @@ export class NodePosition {
 
     public toString(): string {
         return `(${this.x},${this.y._inner})`
+    }
+
+    public toMapKey(): number {
+        // Have to do this bigint conversion because bitwise operations in JS are limited to 32 bits
+        const xn = BigInt(this.xCord()) << 6n
+        const yn = BigInt(this.yCord())
+        return Number(xn | yn)
+    }
+
+    static fromMapKey(key: bigint): NodePosition {
+        const x = Number(key >> 6n)
+        const y = Number(key & 0x3fn)
+        return new NodePosition(x, new Height(y))
     }
 
     static fromRedisKey(redisKey: string, prefix: boolean = true): NodePosition {
