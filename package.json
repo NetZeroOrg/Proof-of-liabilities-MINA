@@ -8,7 +8,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "test": "turbo run test",
     "test:watch": "turbo run test:watch",
-    "generate-dummy-data": "node --experimental-vm-modules --experimental-wasm-modules apps/tree_core/dist/src/index.js"
+    "generate-dummy-data": "node --experimental-vm-modules --experimental-wasm-modules package/tree_core/dist/src/index.js"
   },
   "devDependencies": {
     "prettier": "^3.2.5",
