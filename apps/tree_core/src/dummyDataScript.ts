@@ -1,8 +1,8 @@
-import { rangeCheckProgram } from "circuits/dist/programs";
-import { randomBytes32 } from "./bytes";
-import { Height } from "./position";
-import { TreeBuilder, TreeParams } from "./treeBuilder";
-import { DBRecord, FixedLengthArray } from "./types";
+import { rangeCheckProgram } from "circuits/dist/index.js";
+import { randomBytes32 } from "./bytes.js";
+import { Height } from "./position.js";
+import { TreeBuilder, TreeParams } from "./treeBuilder.js";
+import { DBRecord, FixedLengthArray } from "./types.js";
 import crypto from 'crypto';
 import fs from 'fs';
 function generateRandomEmail(): string {
@@ -33,16 +33,18 @@ function generateAssetData(numUsers: number, numAssets: number, outputFile: stri
 }
 
 
-async function createRandomDataTree() {
-    const numUsers = 50_000
-    const numAssets = 10
+export async function createRandomDataTree(
+    numUsers: number,
+    numAssets: number,
+    redisConnectionURL?: string
+) {
     const data = generateAssetData(numUsers, numAssets);
     const records = data.map((data) => {
         const user = data[0]!;
         const balances = data.slice(1).map((balance) => parseInt(balance)) as unknown as FixedLengthArray<number, 10>;
         return { user, balances } as DBRecord<10>;
     })
-    const height = new Height(15)
+    const height = new Height(Math.floor(Math.log2(numUsers)) + 2)
     const treeParams: TreeParams = {
         masterSecret: randomBytes32(),
         saltB: randomBytes32(),
@@ -56,7 +58,7 @@ async function createRandomDataTree() {
     const [store,] = await treeBuilder.buildSingleThreaded(rangeCheckProgram, true)
     console.timeEnd("Tree Build Time")
     console.time("Save Time")
-    await store.save()
+    await store.save(redisConnectionURL)
+    console.timeEnd("Save Time")
 }
 
-createRandomDataTree()

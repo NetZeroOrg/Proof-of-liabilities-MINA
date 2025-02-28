@@ -1,5 +1,5 @@
 import { Field } from "o1js"
-import { Direction } from "./types"
+import { Direction } from "./types.js"
 
 export class Height {
     _inner: number = 0
@@ -38,8 +38,8 @@ export class Height {
  * max value of x is 2^53 - 1
  */
 export class NodePosition {
-    x: number = 0
-    y: Height = new Height(0)
+    x: number
+    y: Height
 
     constructor(x: number, y: Height) {
         if (x < 0 || x > 2 ** 53 - 1) {
@@ -82,5 +82,13 @@ export class NodePosition {
 
     public toString(): string {
         return `(${this.x},${this.y._inner})`
+    }
+
+    static fromRedisKey(redisKey: string, prefix: boolean = true): NodePosition {
+        const parts = prefix ? redisKey.slice(6, -1).split(',').map(Number) : redisKey.slice(1, -1).split(',').map(Number)
+        const x = parts[0]!
+        const y = parts[1]!
+
+        return new NodePosition(x, new Height(y))
     }
 }

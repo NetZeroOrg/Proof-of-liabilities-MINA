@@ -2,6 +2,7 @@
   "name": "tree_core",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "tsc --outDir dist",
     "test": "jest --config jest.config.ts",
@@ -11,9 +12,11 @@
     "@babel/preset-env": "^7.26.9",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
+    "@types/yargs": "^17.0.33",
     "babel-jest": "^29.7.0",
     "circuits": "workspace:*",
-    "redis": "^4.7.0"
+    "redis": "^4.7.0",
+    "yargs": "^17.7.2"
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",

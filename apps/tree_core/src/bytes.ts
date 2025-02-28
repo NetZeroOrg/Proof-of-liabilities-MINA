@@ -1,6 +1,5 @@
 import { Field } from "o1js";
-import { bytes32 } from "./types";
-import { NodePosition } from "./position";
+import { NodePosition } from "./position.js";
 
 export class Bytes32 {
     data: boolean[];

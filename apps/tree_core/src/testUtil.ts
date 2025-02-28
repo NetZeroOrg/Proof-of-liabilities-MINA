@@ -1,4 +1,7 @@
-import { DBRecord, FixedLengthArray } from "./types";
+import { createClient } from "redis";
+import { NodePosition } from "./position.js";
+import { DBRecord, FixedLengthArray } from "./types.js";
+import { readFileSync } from 'fs';
 
 export function randomRecords<N extends number>(num: number, nCurr: N): DBRecord<N>[] {
     const records: DBRecord<N>[] = [];
@@ -10,4 +13,16 @@ export function randomRecords<N extends number>(num: number, nCurr: N): DBRecord
     }
 
     return records;
+}
+
+
+export async function loadRandomUserFromDB(reddisConnectionURI?: string): Promise<[NodePosition, string]> {
+    const client = createClient({ url: reddisConnectionURI })
+    await client.connect()
+    const data = JSON.parse(readFileSync('data.json', 'utf-8')).data;
+    const randomIndex = Math.floor(Math.random() * data.length);
+    const randomUser = data[randomIndex];
+    const nodePos = await client.get(randomUser)
+    return [NodePosition.fromRedisKey(nodePos!, false), randomUser]
+
 }

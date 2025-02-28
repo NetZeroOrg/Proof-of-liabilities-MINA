@@ -1,12 +1,15 @@
-import { rangeCheckProgram } from "circuits/dist/programs";
-import { merge, mergePathNodes, newLeaf, newPaddingNode, newPadPathNode, Node, PathNode } from "./node";
-import { Height, NodePosition } from "./position";
-import { DBRecord, Direction, newPaddingNodeParams, newPaddingPathNode } from "./types";
-import { Store } from "./store";
-import { Bytes32 } from "./bytes";
-import { XCordGenerator } from "./xCordGen";
-import { kdf } from "./kdf";
+import { rangeCheckProgram } from "circuits/dist/index.js";
+import { merge, mergePathNodes, newLeaf, newPaddingNode, newPadPathNode, Node, PathNode } from "./node.js";
+import { Height, NodePosition } from "./position.js";
+import { DBRecord, Direction, newPaddingNodeParams, newPaddingPathNode } from "./types.js";
+import { Store } from "./store.js";
+import { Bytes32 } from "./bytes.js";
+import { XCordGenerator } from "./xCordGen.js";
+import { kdf } from "./kdf.js";
 import { createClient } from "redis";
+
+
+const USER_KEY_PREFIX = "user"
 export type paddingNodeContent = (nodePos: NodePosition) => newPaddingNodeParams;
 export type paddingPathNodeContent = (nodePos: NodePosition) => newPaddingPathNode;
 interface Pair {
@@ -70,8 +73,8 @@ async function singleThreadedTreeBuilder(
     leafNodes: [NodePosition, Node][],
     height: Height,
     paddingNodeClosure: paddingNodeContent,
+    treeParams: TreeParams,
     storeDepth?: number,
-    treeParams?: TreeParams
 ) {
     const nodeMap = new Map<NodePosition, Node>();
     const maxLeafs = height.maxNodes()
@@ -228,11 +231,11 @@ export class TreeBuilder<N extends number> {
             })
             await client.connect()
             for (const [key, value] of recordMap.entries()) {
-                await client.set(key, value.toString())
+                await client.set(USER_KEY_PREFIX + key, value.toString())
             }
             await client.disconnect()
         }
 
-        return [await singleThreadedTreeBuilder(leafNodes, height, paddingNodeFn, undefined, this.treeParams), recordMap]
+        return [await singleThreadedTreeBuilder(leafNodes, height, paddingNodeFn, this.treeParams), recordMap]
     }
 }

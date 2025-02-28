@@ -1,2 +1,1 @@
-export * from "./rangeCheck"
-export * from "./tree"
+export * from "./rangeCheck.js"

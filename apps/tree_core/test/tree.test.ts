@@ -1,13 +1,14 @@
 import { rangeCheckProgram } from "circuits/dist/programs"
-import { randomRecords } from "../src/testUtil"
+import { loadRandomUserFromDB, randomRecords } from "../src/testUtil"
 import { TreeBuilder, TreeParams } from "../src/treeBuilder"
 import { Height, NodePosition } from "../src/position"
 import { randomBytes32 } from "../src/bytes"
 import { Store } from "../src/store"
 import { generateProof } from "../src/path"
+import { createRandomDataTree } from "../src/dummyDataScript"
 
-describe("Tree tests", () => {
-    const randRecord = randomRecords(8, 4)
+describe("Basic Tree Test", () => {
+    const randRecord = randomRecords(3, 4)
     const treeParams: TreeParams = {
         masterSecret: randomBytes32(),
         saltB: randomBytes32(),
@@ -15,7 +16,7 @@ describe("Tree tests", () => {
     }
     let treeStore: Store
     let recordMap: Map<string, NodePosition>
-    const treeBuilder = new TreeBuilder(randRecord, new Height(3), treeParams)
+    const treeBuilder = new TreeBuilder(randRecord, new Height(2), treeParams)
     beforeAll(async () => {
         await rangeCheckProgram.compile()
     })
@@ -26,8 +27,24 @@ describe("Tree tests", () => {
         expect(treeStore).toBeDefined()
     }, 1_000_000)
     it("should generate a path and verify root", async () => {
-        const path = generateProof(treeParams, treeStore, recordMap.get(randRecord[0]!.user)!)
+        const path = generateProof(treeStore, recordMap.get(randRecord[0]!.user)!)
         console.log(path)
     })
+})
 
+
+describe("Tree save and load test", () => {
+    beforeAll(async () => {
+        await rangeCheckProgram.compile()
+    })
+    it("should save the tree", async () => {
+        await createRandomDataTree(3, 10)
+    })
+    it("should load store from redis and generate path", async () => {
+        const store = await Store.loadFromDB()
+        const [nodePos, user] = await loadRandomUserFromDB()
+        console.log("generating for", user)
+        const proof = generateProof(store, nodePos)
+        console.log(proof)
+    }, 1_000_000)
 })

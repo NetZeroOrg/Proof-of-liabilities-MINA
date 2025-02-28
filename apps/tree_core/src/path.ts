@@ -1,11 +1,11 @@
-import { RangeCheckProof } from "circuits/dist/programs";
-import { newPadPathNode, Node, PathNode, toPathNode } from "./node";
-import { Height, NodePosition } from "./position";
-import { Store } from "./store";
-import { buildPathTree, paddingNodeContent, paddingPathNodeContent, TreeParams } from "./treeBuilder";
-import { newPaddingPathNode } from "./types";
-import { kdf } from "./kdf";
-import { Bytes32 } from "./bytes";
+import { RangeCheckProof } from "circuits/dist/index.js";
+import { newPadPathNode, Node, PathNode, toPathNode } from "./node.js";
+import { Height, NodePosition } from "./position.js";
+import { Store } from "./store.js";
+import { buildPathTree, paddingNodeContent, paddingPathNodeContent, TreeParams } from "./treeBuilder.js";
+import { newPaddingPathNode } from "./types.js";
+import { kdf } from "./kdf.js";
+import { Bytes32 } from "./bytes.js";
 
 export type Siblings = PathNode[]
 
@@ -78,16 +78,16 @@ export interface LiabilitiesProof {
  * @param position the position of the leaf node for which the proof is to be generated
  * @returns the liabilities proof for the leaf node
  */
-export const generateProof = (treeParams: TreeParams, treeStore: Store, position: NodePosition): LiabilitiesProof => {
+export const generateProof = (treeStore: Store, position: NodePosition): LiabilitiesProof => {
     const paddingNodeFn = (position: NodePosition): newPaddingPathNode => {
-        const padSecret = kdf(null, Bytes32.fromNodePos(position), treeParams.masterSecret)
-        const blindingFactor = kdf(treeParams.saltB, null, padSecret)
-        const userSecret = kdf(treeParams.saltS, null, padSecret)
+        const padSecret = kdf(null, Bytes32.fromNodePos(position), treeStore.treeParams.masterSecret)
+        const blindingFactor = kdf(treeStore.treeParams.saltB, null, padSecret)
+        const userSecret = kdf(treeStore.treeParams.saltS, null, padSecret)
         return { userSecret, blindingFactor, position }
     }
     const witness = generateMerkleWitness(treeStore, position, paddingNodeFn)
-    const masterSecret = kdf(null, Bytes32.fromNumber(position.xCord()), treeParams.masterSecret);
-    const blindingFactor = kdf(treeParams.saltB, null, masterSecret)
-    const userSecret = kdf(treeParams.saltS, null, masterSecret)
+    const masterSecret = kdf(null, Bytes32.fromNumber(position.xCord()), treeStore.treeParams.masterSecret);
+    const blindingFactor = kdf(treeStore.treeParams.saltB, null, masterSecret)
+    const userSecret = kdf(treeStore.treeParams.saltS, null, masterSecret)
     return { witness, blidingFactor: blindingFactor, userSecret }
 }

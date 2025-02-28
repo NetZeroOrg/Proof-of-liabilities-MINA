@@ -1,6 +1,6 @@
-import { rangeCheckProgram } from "circuits/dist/programs"
-import { Bytes32 } from "./bytes"
-import { NodePosition } from "./position"
+import { rangeCheckProgram } from "circuits/dist/index.js"
+import { Bytes32 } from "./bytes.js"
+import { NodePosition } from "./position.js"
 
 type ArrayLengthMutationKeys = 'splice' | 'push' | 'pop' | 'shift' | 'unshift'
 export type FixedLengthArray<T, L extends number, TObj = [T, ...Array<T>]> =

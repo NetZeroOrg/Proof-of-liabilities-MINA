@@ -1,4 +1,4 @@
-import { Bytes32 } from "./bytes";
+import { Bytes32 } from "./bytes.js";
 import crypto from 'crypto';
 
 export function kdf(salt: Bytes32 | null, id: Bytes32 | null, ikm: Bytes32): Bytes32 {
