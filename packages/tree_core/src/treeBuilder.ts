@@ -7,6 +7,8 @@ import { Bytes32 } from "./bytes.js";
 import { XCordGenerator } from "./xCordGen.js";
 import { kdf } from "./kdf.js";
 import { createClient } from "redis";
+import fs from "fs"
+import path from "path"
 
 
 const USER_KEY_PREFIX = "user"
@@ -223,15 +225,8 @@ export class TreeBuilder<N extends number> {
         const height = Height.fromNodesLen(leafNodes.length)
 
         if (saveRecordMap) {
-            const client = createClient({ url: reddisConnectionURI })
-            client.on("error", function (error) {
-                console.error(error);
-                throw error;
-            })
-            await client.connect()
-            for (const [key, value] of recordMap.entries()) {
-                await client.set(USER_KEY_PREFIX + key, value.toString())
-            }
+            const recordMapPath = path.join(__dirname, 'recordMap.json');
+            fs.writeFileSync(recordMapPath, JSON.stringify(Array.from(recordMap.entries())));
         }
 
         return [await singleThreadedTreeBuilder(leafNodes, height, paddingNodeFn, this.treeParams), recordMap]

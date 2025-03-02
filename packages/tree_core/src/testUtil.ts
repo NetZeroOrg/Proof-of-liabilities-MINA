@@ -21,13 +21,15 @@ export function randomRecords<N extends number>(num: number, nCurr: N): DBRecord
 
 
 export async function loadRandomUserFromDB(reddisConnectionURI?: string): Promise<[NodePosition, string]> {
-    const client = createClient({ url: reddisConnectionURI })
-    await client.connect()
-    const data = JSON.parse(readFileSync('data.json', 'utf-8')).data;
-    const randomIndex = Math.floor(Math.random() * data.length);
-    const randomUser = data[randomIndex];
-    const nodePos = await client.get("user" + randomUser[0])
-    return [NodePosition.fromRedisKey(nodePos!, false), randomUser[0]]
+    const client = createClient({ url: reddisConnectionURI });
+    await client.connect();
+
+    const recordMap = JSON.parse(readFileSync(new URL('./record_map.json', import.meta.url), 'utf-8'));
+    const randomUser = Object.keys(recordMap)[Math.floor(Math.random() * Object.keys(recordMap).length)]!;
+    const nodePos = recordMap[randomUser];
+
+    await client.disconnect();
+    return [NodePosition.fromRedisKey(nodePos!, false), randomUser[0]!]
 }
 
 /**
