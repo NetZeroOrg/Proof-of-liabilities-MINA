@@ -1,21 +1,17 @@
 import { Bool, Field, Group, Provable, Struct, UInt64 } from "o1js";
-import { DynamicArray } from "mina-attestations";
-
 
 export class UserParams extends Struct({
     // assuming a maximum of 1000 assets
-    balances: DynamicArray(Field, { maxLength: 1000 }),
+    balances: Provable.Array(Field, 100),
     blindingFactor: Field,
     userId: Field,
     userSecret: Field
-}) {
-}
+}) { }
 
 export class NodeContent extends Struct({
     commitment: Group,
     hash: Field
-}) {
-}
+}) { }
 
 /**
  * @param path: We assume that the max height of tree is 32 we can increase this if we want

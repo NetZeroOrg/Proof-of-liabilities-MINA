@@ -7,9 +7,11 @@ export const inclusionProof = async (witness: MerkleWitness, userParams: UserPar
     const blindingPoint = Group.generator.scale(Poseidon.hash(Group.generator.toFields()))
 
     let liabilities = Field(0)
-    userParams.balances.forEach((balance, index) => {
+    // compute the liabilities of the user
+    for (let index = 0; index < userParams.balances.length; index++) {
+        const balance = userParams.balances[index]!
         liabilities = liabilities.add(balance)
-    })
+    }
 
     // assert that the net liability is positive
     Gadgets.rangeCheck64(liabilities)
