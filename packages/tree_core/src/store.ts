@@ -3,6 +3,8 @@ import { fromRedisObject, Node, toRedisObject } from "./node.js";
 import { Height, NodePosition } from "./position.js";
 import { TreeParams, treeParamsToJSON } from "./treeBuilder.js";
 import { Bytes32 } from "./bytes.js";
+import fs from "fs";
+import { RangeCheckProof } from "circuits/dist/index.js";
 
 const NODE_PREFIX = "nodes"
 const TREE_PARAMS = "treeParams"
@@ -31,6 +33,7 @@ export class Store {
     public root: Node;
     public height: Height;
     treeParams: TreeParams
+
     constructor(root: Node, map: Map<number, Node>, height: Height, treeParams: TreeParams) {
         this.root = root;
         this.map = map;
@@ -39,6 +42,13 @@ export class Store {
     }
 
     async save(redisConnectionURL?: string) {
+        // save the root
+        const rootProof = this.root.rangeProof;
+        if (!rootProof) throw new Error("No root proof found")
+        const rootProofJSON = rootProof.toJSON()
+        fs.writeFileSync("root_proof.json", JSON.stringify(rootProofJSON, null, 2))
+
+        // save the stuff to redis
         const client = createClient({ url: redisConnectionURL })
         client.on("error", function (error) {
             console.error(error);
@@ -66,7 +76,7 @@ export class Store {
     }
 
 
-    static async loadFromDB(reddisConnectionURI?: string) {
+    static async loadFromDB(rootProofPath: string, reddisConnectionURI?: string,) {
         const client = createClient({ url: reddisConnectionURI })
 
         client.on("error", function (error) {
@@ -86,7 +96,14 @@ export class Store {
             const position = NodePosition.fromRedisKey(key)
             map.set(position.toMapKey(), node)
         }
-
+        console.log(rootProofPath)
+        if (fs.existsSync(rootProofPath)) {
+            const rootProofJSON = JSON.parse(fs.readFileSync(rootProofPath, "utf-8"));
+            const rootProof = await RangeCheckProof.fromJSON(rootProofJSON);
+            root.rangeProof = rootProof;
+        } else {
+            throw new Error("Root proof not found")
+        }
         return new Store(root, map, new Height(height), treeParams)
     }
 }

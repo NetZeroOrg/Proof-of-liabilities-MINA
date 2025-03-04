@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "exports": {
+    "import": "./dist/index.js"
+  },
   "scripts": {
     "build": "tsc --outDir dist",
     "test": "jest --config jest.config.ts -t 'Tree save and load test' ",

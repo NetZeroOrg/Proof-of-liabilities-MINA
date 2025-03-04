@@ -1,8 +1,8 @@
 import { RangeCheckProof } from "circuits/dist/index.js";
-import { newPadPathNode, Node, PathNode, toPathNode } from "./node.js";
+import { newPadPathNode, PathNode, toPathNode } from "./node.js";
 import { Height, NodePosition } from "./position.js";
 import { Store } from "./store.js";
-import { buildPathTree, paddingNodeContent, paddingPathNodeContent, TreeParams } from "./treeBuilder.js";
+import { buildPathTree, paddingPathNodeContent } from "./treeBuilder.js";
 import { newPaddingPathNode } from "./types.js";
 import { kdf } from "./kdf.js";
 import { Bytes32 } from "./bytes.js";

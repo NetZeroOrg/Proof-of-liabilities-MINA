@@ -99,9 +99,10 @@ export class NodePosition {
 
     static fromRedisKey(redisKey: string, prefix: boolean = true): NodePosition {
         const parts = prefix ? redisKey.slice(6, -1).split(',').map(Number) : redisKey.slice(1, -1).split(',').map(Number)
-        const x = parts[0]!
-        const y = parts[1]!
-
+        const x = parts[0]
+        if (x === undefined) throw new Error("Cannot do fromRedisKey without x")
+        const y = parts[1]
+        if (y === undefined) throw new Error("Cannot do fromRedisKey without y")
         return new NodePosition(x, new Height(y))
     }
 }

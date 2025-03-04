@@ -46,7 +46,7 @@ describe("Tree save and load test", () => {
         await createRandomDataTree(3, 10)
     }, 1_000_000)
     it("should load store from redis and generate path", async () => {
-        const store = await Store.loadFromDB()
+        const store = await Store.loadFromDB("root_proof.json")
         const nodePos = new NodePosition(0, new Height(0))
         const proof = generateProof(store, nodePos)
         const root = generateRootFromPath(proof, store, nodePos)

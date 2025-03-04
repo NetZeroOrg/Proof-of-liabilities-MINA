@@ -1,5 +1,5 @@
 import { rangeCheckProgram } from "circuits/dist/index.js";
-import { logNode, merge, mergePathNodes, newLeaf, newPaddingNode, newPadPathNode, Node, PathNode } from "./node.js";
+import { merge, mergePathNodes, newLeaf, newPaddingNode, newPadPathNode, Node, PathNode } from "./node.js";
 import { Height, NodePosition } from "./position.js";
 import { DBRecord, Direction, newPaddingNodeParams, newPaddingPathNode } from "./types.js";
 import { Store } from "./store.js";
@@ -200,17 +200,32 @@ export class TreeBuilder<N extends number> {
         const recordMap = new Map<string, NodePosition>();
         const zeroHeight = new Height(0);
 
-
         const leafNodes: [NodePosition, Node][] = []
         for (let i = 0; i < this.records.length; i++) {
+            console.time("Generated a new X cordinate")
             const newXCord = this.xCordGen.genXCord();
+            console.timeEnd("Generated a new X cordinate")
             const nodePos = new NodePosition(newXCord, zeroHeight);
+
+            console.time("kdf1")
             const masterSecret = kdf(null, Bytes32.fromNumber(newXCord), this.treeParams.masterSecret);
+            console.timeEnd("kdf1")
+            console.time("kdf2")
             const blindingFactor = kdf(this.treeParams.saltB, null, masterSecret)
+            console.timeEnd("kdf2")
+            console.time("kdf3")
             const userSecret = kdf(this.treeParams.saltS, null, masterSecret)
+            console.timeEnd("kdf3")
+            console.time("record Setting")
             recordMap.set(this.records[i]!.user, nodePos)
+            console.timeEnd("record Setting")
+
+            console.time("new leaf and push")
+            // this takes 13s how do I decrease this?
             leafNodes.push([nodePos, await newLeaf({ record: this.records[i]!, compileRangeCheckProgram, userSecret, blindingFactor })])
+            console.timeEnd("new leaf and push")
         }
+
 
         leafNodes.sort((a, b) => a[0].xCord() - b[0].xCord());
 
@@ -225,8 +240,16 @@ export class TreeBuilder<N extends number> {
         const height = Height.fromNodesLen(leafNodes.length)
 
         if (saveRecordMap) {
-            const recordMapPath = path.join(__dirname, 'recordMap.json');
-            fs.writeFileSync(recordMapPath, JSON.stringify(Array.from(recordMap.entries())));
+            // writing map to a file for testing
+            const filePath = path.join(__dirname, "recordMap.json");
+            fs.writeFileSync(filePath, JSON.stringify(Array.from(recordMap.entries())));
+
+            // saving to redis
+            const client = createClient({ url: reddisConnectionURI });
+            await client.connect();
+            for (const [user, position] of recordMap.entries()) {
+                await client.set(`${USER_KEY_PREFIX}:${user}`, position.toString());
+            }
         }
 
         return [await singleThreadedTreeBuilder(leafNodes, height, paddingNodeFn, this.treeParams), recordMap]
