@@ -20,6 +20,8 @@
     "node": ">=18"
   },
   "dependencies": {
+    "backend-contract": "^0.1.0",
+    "circuits": "^0.0.0",
     "o1js": "2.0.0"
   }
 }

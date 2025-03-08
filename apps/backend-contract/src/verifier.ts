@@ -2,7 +2,6 @@ import { fetchAccount, Field, Group, method, Provable, PublicKey, SmartContract,
 import { InclusionProof } from "circuits/dist/index.js"
 
 
-
 export class NetZeroVerifier extends SmartContract {
   // The root hash of the liabilites tree
   @state(Field) rootHash = State<Field>()

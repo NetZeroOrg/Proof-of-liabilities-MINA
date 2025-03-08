@@ -1,4 +1,4 @@
-import { assert, Field, Group, Poseidon, Provable, SelfProof, ZkProgram } from "o1js";
+import { assert, Field, Gadgets, Group, Poseidon, Provable, SelfProof, ZkProgram } from "o1js";
 import { MerkleWitness, NodeContent, UserParams } from "./types.js";
 
 
@@ -10,6 +10,10 @@ export const inclusionProof = async (witness: MerkleWitness, userParams: UserPar
     userParams.balances.forEach((balance, index) => {
         liabilities = liabilities.add(balance)
     })
+
+    // assert that the net liability is positive
+    Gadgets.rangeCheck64(liabilities)
+
     let rootComm = Group.generator.scale(liabilities).add(blindingPoint.scale(userParams.blindingFactor))
     let rootHash = Poseidon.hash([Field(10810197102n), Field(userParams.userId), userParams.userSecret])
     // compute the user leaf
