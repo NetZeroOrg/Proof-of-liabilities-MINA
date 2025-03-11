@@ -1,3 +1,9 @@
 [submodule "mina-attestations"]
 	path = packages/mina-attestations
 	url = https://github.com/zksecurity/mina-attestations.git
+[submodule "Proof-of-Reserves-Mina"]
+	path = packages/por
+	url = git@github.com:NetZeroOrg/Proof-of-Reserves-Mina.git
+[submodule "packages/Proof-of-Reserves-Mina"]
+	path = packages/Proof-of-Reserves-Mina
+	url = git@github.com:NetZeroOrg/Proof-of-Reserves-Mina.git

@@ -1,0 +1,12 @@
+{
+    "extends": "@repo/typescript-config/circuits.json",
+    "files": [
+        "node_modules/jest-expect-message/types/index.d.ts"
+    ],
+    "include": [
+        "./src/**/*"
+    ],
+    "exclude": [
+        "jest.config.cjs"
+    ],
+}
