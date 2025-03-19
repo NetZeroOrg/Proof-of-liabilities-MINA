@@ -16,11 +16,6 @@ export default fp(async (fastify: FastifyInstance) => {
 
     fastify.log.info('Redis plugin registered');
 
-
-
-
-
-
 }, {
     name: 'fastify-redis',
     dependencies: ['config']

@@ -1,7 +1,7 @@
 import { FastifyPluginAsync } from "fastify"
 import { Store, NodePosition, generateProof } from "tree_core"
 
-const example: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
+const proofGen: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   let treeStore: Store
   fastify.post<{ Body: { userId: string } }>('/get', async function (request, reply) {
     const { userId } = request.body
@@ -20,4 +20,4 @@ const example: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
     }
   })
 }
-export default example;
+export default proofGen;

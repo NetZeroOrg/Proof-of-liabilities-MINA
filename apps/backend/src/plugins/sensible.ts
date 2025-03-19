@@ -7,5 +7,13 @@ import sensible, { FastifySensibleOptions } from '@fastify/sensible'
  * @see https://github.com/fastify/fastify-sensible
  */
 export default fp<FastifySensibleOptions>(async (fastify) => {
-  fastify.register(sensible)
+  try {
+
+    fastify.register(sensible)
+    fastify.log.info('sensible plugin loaded')
+  } catch (error) {
+    fastify.log.error("hello", error)
+    throw error
+  }
 })
+

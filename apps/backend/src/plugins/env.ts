@@ -7,6 +7,9 @@ export interface EnvConfig {
     PORT: number;
     REDIS_URL: string;
     ROOT_PROOF_PATH: string;
+    NETZERO_BACKEND_VERIFY_API: string;
+    CEX_ID: string;
+    API_KEY: string;
 }
 
 const schema = {
@@ -18,7 +21,10 @@ const schema = {
             default: 3000
         },
         REDIS_URL: { type: 'string' },
-        ROOT_PROOF_PATH: { type: 'string' }
+        ROOT_PROOF_PATH: { type: 'string' },
+        NETZERO_BACKEND_VERIFY_API: { type: 'string' },
+        CEX_ID: { type: 'string' },
+        API_KEY: { type: 'string' }
     }
 };
 
@@ -29,8 +35,20 @@ const options = {
 };
 
 export default fp<{}>(async (fastify: FastifyInstance) => {
-    await fastify.register(fastifyEnv, options);
-
+    // Register the fastify-env plugin with the schema and options
+    // This will validate the environment variables against the schema
+    // and make them available in fastify.config
+    // The `options` object is passed to the plugin
+    // and contains the schema and other configuration options
+    // The `confKey` option specifies the key under which the configuration
+    // will be stored in the Fastify instance
+    try {
+        await fastify.register(fastifyEnv, options);
+        fastify.log.info('Environment variables loaded successfully');
+    } catch (error) {
+        fastify.log.error('Error loading environment variables:', error);
+        throw error;
+    }
     // Type augmentation to add config property to FastifyInstance
     // This makes TypeScript recognize fastify.config
 }, { name: 'config' });
