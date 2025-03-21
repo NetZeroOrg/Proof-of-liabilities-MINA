@@ -1,8 +1,8 @@
-import { fetchAccount, Field, Group, method, Provable, PublicKey, SmartContract, State, state } from "o1js";
-import { InclusionProof } from "circuits/dist/index.js"
+import { Field, Group, method, Provable, PublicKey, SmartContract, State, state } from "o1js";
+import { InclusionProof } from "circuits"
 
 
-export class NetZeroVerifier extends SmartContract {
+export class NetZeroLiabilitiesVerifier extends SmartContract {
   // The root hash of the liabilites tree
   @state(Field) rootHash = State<Field>()
 
@@ -15,6 +15,9 @@ export class NetZeroVerifier extends SmartContract {
 
   // The admin of that is allowed to update the public parameters
   @state(PublicKey) admin = State<PublicKey>()
+
+  // Number of verified proofs
+  @state(Field) verifiedProofs = State<Field>()
 
   init(): void {
     super.init()
@@ -43,12 +46,14 @@ export class NetZeroVerifier extends SmartContract {
     this.rootCommitment.set(rootCommitment)
   }
 
-  @method async verifySolvency(proof: InclusionProof) {
+  @method async verifyInclusion(proof: InclusionProof) {
     proof.verify()
     const computedRoot = proof.publicOutput;
     computedRoot.hash.assertEquals(this.rootHash.getAndRequireEquals())
     computedRoot.commitment.assertEquals(this.rootCommitment.getAndRequireEquals())
+    // increment the verified proofs
+    const verifiedProofs = this.verifiedProofs.getAndRequireEquals();
+    this.verifiedProofs.set(verifiedProofs.add(1));
   }
 
 }
-

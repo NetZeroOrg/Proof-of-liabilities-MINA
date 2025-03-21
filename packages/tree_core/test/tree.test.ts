@@ -1,4 +1,4 @@
-import { rangeCheckProgram } from "circuits/dist/programs"
+import { rangeCheckProgram } from "circuits"
 import { generateRootFromPath, loadRandomUserFromDB, randomRecords } from "../src/testUtil"
 import { TreeBuilder, TreeParams } from "../src/treeBuilder"
 import { Height, NodePosition } from "../src/position"

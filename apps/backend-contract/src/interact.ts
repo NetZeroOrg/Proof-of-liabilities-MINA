@@ -12,10 +12,10 @@
  * Build the project: `$ npm run build`
  * Run with node:     `$ node build/src/interact.js <deployAlias>`.
  */
-import fs from 'fs/promises';
 import { Mina, NetworkId, PrivateKey } from 'o1js';
-import { NetZeroVerifier } from './verifier.js';
-import { InclusionProofProgram } from 'circuits/dist/index.js';
+import { NetZeroLiabilitiesVerifier } from './polVerifier.js';
+import { InclusionProofProgram } from "circuits";
+import fs from 'fs/promises';
 
 // check command line arg
 const deployAlias = process.argv[2];
@@ -66,14 +66,14 @@ const fee = Number(config.fee) * 1e9; // in nanomina (1 billion = 1.0 mina)
 Mina.setActiveInstance(Network);
 const feepayerAddress = feepayerKey.toPublicKey();
 const zkAppAddress = zkAppKey.toPublicKey();
-const zkApp = new NetZeroVerifier(zkAppAddress);
+const zkApp = new NetZeroLiabilitiesVerifier(zkAppAddress);
 
 // load the zkApp and comipile
 await InclusionProofProgram.compile();
 
 // compile the contract to create prover keys
 console.log('compile the contract...');
-await NetZeroVerifier.compile();
+await NetZeroLiabilitiesVerifier.compile();
 
 const newAdminKeyPrivateKey = PrivateKey.random();
 const newAdminKey = newAdminKeyPrivateKey.toPublicKey();

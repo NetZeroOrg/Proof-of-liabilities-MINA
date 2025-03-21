@@ -24,11 +24,6 @@
     "useDefineForClassFields": false,
   },
   "include": [
-    "./src",
-    "test/verifier.test.ts"
+    "./src"
   ],
-  "types": [
-    "node",
-    "jest"
-  ]
 }

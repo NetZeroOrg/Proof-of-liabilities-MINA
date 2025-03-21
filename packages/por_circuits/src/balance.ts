@@ -68,7 +68,7 @@ const findBitcoinBalance = async (_address: addressInfo[]): Promise<Field[]> => 
 }
 
 export const assetMap: {
-  [key: number]: (address: Field[]) => Promise<Field[]>
+  [key: number]: (address: addressInfo[]) => Promise<Field[]>
 } = {
-  1: (address: Field[]) => findBitcoinBalance(address)
+  1: (address: addressInfo[]) => findBitcoinBalance(address)
 }

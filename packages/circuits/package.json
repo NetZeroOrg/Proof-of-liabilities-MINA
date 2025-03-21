@@ -7,12 +7,12 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "lint": "eslint .",
-    "build": "tsup src/index.ts --format cjs,esm --dts"
+    "build": "tsc"
   },
   "dependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "mina-attestations": "0.3.6"
+    "mina-attestations": "0.5.0"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
