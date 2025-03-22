@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "16001:16001" # Adjust port as needed for your backend
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - API_KEY=kcjbd6bmbk8x8r468684
+      - ROOT_PROOF_PATH=.
+    depends_on:
+      - redis
+    networks:
+      - backend
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - backend
+
+volumes:
+  node_modules:
+  redis-data:
+
+
+networks:
+  backend:
