@@ -2,9 +2,9 @@ import { FastifyPluginAsync } from "fastify"
 import fs from "fs";
 import path from "path";
 import csvParser from "csv-parser";
-import axios from "axios";
 
-const proofGen: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
+
+const user: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
     let rows: any[] = [];
     fastify.get("/verify/:email", async function (request, reply) {
         const csvFilePath = path.join(import.meta.dirname, "../../..", "data", "data.csv");
@@ -24,44 +24,17 @@ const proofGen: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
                 });
             }
             const user = rows.find((row) => row.UserEmail === email);
-            const api = fastify.config.NETZERO_BACKEND_VERIFY_API
-            const cexId = fastify.config.CEX_ID
-            const apiKey = fastify.config.API_KEY
-            console.log("api", api);
-            console.log("cexId", cexId);
-            console.log("apiKey", apiKey);
-            console.log("user", user);
 
             if (user) {
-                const request = await axios.post(api, {
-                    email,
-                    cexId
-                }, {
-                    headers: {
-                        "x-api-key": apiKey,
-                    }
-                })
-                const { data } = request
-                if (data) {
-                    return reply.send({
-                        found: true,
-                        data: data
-                    });
-                }
-                return reply.send({
-                    found: false,
-                    message: "No data found",
-                });
+                return reply.send({ found: true });
             } else {
-                return reply.send({
-                    found: false
-                });
+                return reply.status(404).send({ found: false });
             }
         } catch (error) {
-            reply.status(500).send({ error: "Internal Server Error" });
+            return reply.status(500).send({ error: "Internal Server Error" });
         }
     });
 }
 
-export default proofGen;
+export default user;
 
