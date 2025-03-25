@@ -1,7 +1,7 @@
-import { ProofOfSolvency } from "@netzero/por_circuits/src";
+import { ProofOfSolvency } from "@netzero/por_circuits";
 import { Field, method, PublicKey, SmartContract, state, State } from "o1js";
-import { NetZeroLiabilitiesVerifier } from "./polVerifier";
-import { NetZeroAssetVerifier } from "./poaVerifier";
+import { NetZeroLiabilitiesVerifier } from "./polVerifier.js";
+import { NetZeroAssetVerifier } from "./poaVerifier.js";
 
 export class ProofOfSolvencyVerifier extends SmartContract {
 

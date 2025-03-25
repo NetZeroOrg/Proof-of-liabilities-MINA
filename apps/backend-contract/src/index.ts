@@ -1,7 +1,9 @@
-import { InclusionProofProgram } from '../../../packages/por_circuits/src/index.js';
+import { InclusionProofProgram } from 'circuits';
 import { NetZeroLiabilitiesVerifier } from './polVerifier.js';
+import { NetZeroAssetVerifier } from './poaVerifier.js';
+import { ProofOfSolvencyVerifier } from './pos.js';
 import { AccountUpdate, Mina, PrivateKey } from 'o1js';
-export { NetZeroLiabilitiesVerifier };
+export { NetZeroLiabilitiesVerifier, NetZeroAssetVerifier, ProofOfSolvencyVerifier };
 
 const main = async () => {
     console.log("here")

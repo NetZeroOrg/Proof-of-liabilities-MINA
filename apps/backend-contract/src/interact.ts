@@ -12,61 +12,90 @@
  * Build the project: `$ npm run build`
  * Run with node:     `$ node build/src/interact.js <deployAlias>`.
  */
-import { Mina, NetworkId, PrivateKey } from 'o1js';
+import { Mina, NetworkId, PrivateKey, PublicKey } from 'o1js';
 import { NetZeroLiabilitiesVerifier } from './polVerifier.js';
-import { InclusionProofProgram } from "circuits";
+import { InclusionProofProgram, rangeCheckProgram } from "circuits";
 import fs from 'fs/promises';
+import { AccountUpdate } from 'o1js';
+import { proofOfAssetProgram, selectorZkProgram, proofOfSolvencyProgram } from '@netzero/por_circuits';
+import { NetZeroAssetVerifier } from './poaVerifier.js';
+import { ProofOfSolvencyVerifier } from './pos.js';
+import path from 'path';
 
-// check command line arg
-const deployAlias = process.argv[2];
-if (!deployAlias)
-  throw Error(`Missing <deployAlias> argument.
-
-Usage:
-node build/src/interact.js <deployAlias>
-`);
 Error.stackTraceLimit = 1000;
 const DEFAULT_NETWORK_ID = 'testnet';
 
+
+// const fee payer address
+const feePayerPrivKey = process.env.FEEPAYER_PRIVATE_KEY;
+if (!feePayerPrivKey)
+  throw Error('Missing FEEPAYER_PRIVATE_KEY environment variable.');
+
+const networkId = process.env.NETWORK_ID;
+if (!networkId)
+  throw Error('Missing NETWORK_ID environment variable.');
+
+const MINA_NETWORK_URL = process.env.MINA_NETWORK_URL;
+if (!MINA_NETWORK_URL)
+  throw Error('Missing MINA_NETWORK_URL environment variable.');
 // parse config and private key from file
-type Config = {
-  deployAliases: Record<
-    string,
-    {
-      networkId?: string;
-      url: string;
-      keyPath: string;
-      fee: string;
-      feepayerKeyPath: string;
-      feepayerAlias: string;
-    }
-  >;
-};
-const configJson: Config = JSON.parse(await fs.readFile('config.json', 'utf8'));
-const config = configJson.deployAliases[deployAlias];
-const feepayerKeysBase58: { privateKey: string; publicKey: string } =
-  JSON.parse(await fs.readFile(config.feepayerKeyPath, 'utf8'));
 
-const zkAppKeysBase58: { privateKey: string; publicKey: string } = JSON.parse(
-  await fs.readFile(config.keyPath, 'utf8')
-);
+console.log('Fee payer private key:', feePayerPrivKey);
+// parse the private key from the environment variable
+console.log(networkId)
+console.log(MINA_NETWORK_URL)
 
-const feepayerKey = PrivateKey.fromBase58(feepayerKeysBase58.privateKey);
-const zkAppKey = PrivateKey.fromBase58(zkAppKeysBase58.privateKey);
+const feepayerKey = PrivateKey.fromBase58(feePayerPrivKey);
 
 // set up Mina instance and contract we interact with
 const Network = Mina.Network({
   // We need to default to the testnet networkId if none is specified for this deploy alias in config.json
   // This is to ensure the backward compatibility.
-  networkId: (config.networkId ?? DEFAULT_NETWORK_ID) as NetworkId,
-  mina: config.url,
+  networkId: (networkId ?? DEFAULT_NETWORK_ID) as NetworkId,
+  mina: MINA_NETWORK_URL,
 });
+
 // const Network = Mina.Network(config.url);
-const fee = Number(config.fee) * 1e9; // in nanomina (1 billion = 1.0 mina)
+const fee = 1e9 * 5; // in nanomina (1 billion = 1.0 mina) thus the fees is 5.0 mina
+console.log(fee)
 Mina.setActiveInstance(Network);
 const feepayerAddress = feepayerKey.toPublicKey();
-const zkAppAddress = zkAppKey.toPublicKey();
-const zkApp = new NetZeroLiabilitiesVerifier(zkAppAddress);
+console.log('Fee payer address:', feepayerAddress);
+
+
+const deployContract = async (
+  feepayerAddress: PublicKey,
+  zkApp: NetZeroLiabilitiesVerifier | NetZeroAssetVerifier | ProofOfSolvencyVerifier,
+  zkAppPrivKey: PrivateKey,
+) => {
+  let tx = await Mina.transaction({ sender: feepayerAddress, fee }, async () => {
+    AccountUpdate.fundNewAccount(feepayerAddress);
+    await zkApp.deploy();
+  });
+  await tx.prove();
+  const sentTx = await tx.sign([zkAppPrivKey, feepayerKey]).send();
+  console.log('Deploying the contract done!')
+  const deployTxUrl = getTxnUrl(MINA_NETWORK_URL, sentTx.hash)
+  console.log('Deploy transaction URL:', deployTxUrl);
+
+  function getTxnUrl(graphQlUrl: string, txnHash: string | undefined) {
+    const hostName = new URL(graphQlUrl).hostname;
+    const txnBroadcastServiceName = hostName
+      .split('.')
+      .filter((item) => item === 'minascan')?.[0];
+    const networkName = graphQlUrl
+      .split('/')
+      .filter((item) => item === 'mainnet' || item === 'devnet')?.[0];
+    if (txnBroadcastServiceName && networkName) {
+      return `https://minascan.io/${networkName}/tx/${txnHash}?type=zk-tx`;
+    }
+    return `Transaction hash: ${txnHash}`;
+  }
+}
+console.log("PROOF OF LIABILITIES")
+const liabilitiesVerifierKey = PrivateKey.random();
+const liabVerifierAddress = liabilitiesVerifierKey.toPublicKey();
+const liabVerifierZkApp = new NetZeroLiabilitiesVerifier(liabVerifierAddress);
 
 // load the zkApp and comipile
 await InclusionProofProgram.compile();
@@ -75,51 +104,56 @@ await InclusionProofProgram.compile();
 console.log('compile the contract...');
 await NetZeroLiabilitiesVerifier.compile();
 
-const newAdminKeyPrivateKey = PrivateKey.random();
-const newAdminKey = newAdminKeyPrivateKey.toPublicKey();
-// save the keys to file
-await fs.writeFile(
-  "randomKey.json",
-  JSON.stringify({
-    privateKey: newAdminKeyPrivateKey.toBase58(),
-    publicKey: newAdminKey.toBase58(),
-  })
+
+console.log('Deploying the contract..');
+// deploy the contract
+deployContract(
+  feepayerAddress,
+  liabVerifierZkApp,
+  liabilitiesVerifierKey,
 );
-try {
-  // call update() and send transaction
-  console.log('build transaction and create proof...');
-  const tx = await Mina.transaction(
-    { sender: feepayerAddress, fee },
-    async () => {
-      await zkApp.setAdmin(newAdminKey);
-    }
-  );
-  await tx.prove();
 
-  console.log('send transaction...');
-  const sentTx = await tx.sign([feepayerKey]).send();
-  if (sentTx.status === 'pending') {
-    console.log(
-      '\nSuccess! Update transaction sent.\n' +
-      '\nYour smart contract state will be updated' +
-      '\nas soon as the transaction is included in a block:' +
-      `\n${getTxnUrl(config.url, sentTx.hash)}`
-    );
-  }
-} catch (err) {
-  console.log(err);
-}
+console.log("PROOF OF ASSETS")
 
-function getTxnUrl(graphQlUrl: string, txnHash: string | undefined) {
-  const hostName = new URL(graphQlUrl).hostname;
-  const txnBroadcastServiceName = hostName
-    .split('.')
-    .filter((item) => item === 'minascan')?.[0];
-  const networkName = graphQlUrl
-    .split('/')
-    .filter((item) => item === 'mainnet' || item === 'devnet')?.[0];
-  if (txnBroadcastServiceName && networkName) {
-    return `https://minascan.io/${networkName}/tx/${txnHash}?type=zk-tx`;
-  }
-  return `Transaction hash: ${txnHash}`;
-}
+const AssetVerifierKey = PrivateKey.random();
+const assetVerifierAddress = AssetVerifierKey.toPublicKey();
+const assetVerifierZkApp = new NetZeroAssetVerifier(assetVerifierAddress);
+console.log("Compiling proof of assets programs...")
+await selectorZkProgram.compile()
+await proofOfAssetProgram.compile();
+await NetZeroAssetVerifier.compile();
+console.log("Deploying proof of assets programs done!")
+deployContract(
+  feepayerAddress,
+  assetVerifierZkApp,
+  AssetVerifierKey,
+)
+
+console.log("PROOF OF SOLVENCY")
+const posVerifierKey = PrivateKey.random();
+const posVerifierAddress = posVerifierKey.toPublicKey();
+const posVerifierZkApp = new ProofOfSolvencyVerifier(posVerifierAddress);
+console.log("Compiling proof of solvency programs...")
+await rangeCheckProgram.compile()
+await proofOfSolvencyProgram.compile()
+await ProofOfSolvencyVerifier.compile()
+console.log("Deploying proof of solvency programs done!")
+deployContract(
+  feepayerAddress,
+  posVerifierZkApp,
+  posVerifierKey,
+)
+
+const saveKeyToFile = async (fileName: string, privateKey: PrivateKey, publicKey: PublicKey) => {
+  const keyData = {
+    privateKey: privateKey.toBase58(),
+    publicKey: publicKey.toBase58(),
+  };
+  const filePath = path.join('keys', `${fileName}.json`);
+  await fs.writeFile(filePath, JSON.stringify(keyData, null, 2), 'utf8');
+  console.log(`Keys saved to ${filePath}`);
+};
+
+await saveKeyToFile('liabilitiesVerifier', liabilitiesVerifierKey, liabVerifierAddress);
+await saveKeyToFile('assetVerifier', AssetVerifierKey, assetVerifierAddress);
+await saveKeyToFile('solvencyVerifier', posVerifierKey, posVerifierAddress);

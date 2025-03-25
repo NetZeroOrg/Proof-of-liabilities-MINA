@@ -1,5 +1,5 @@
 import { Field, Group, method, Poseidon, PublicKey, SmartContract, state, State } from "o1js";
-import { ProofOfAsset } from "@netzero/por_circuits/dist/src"
+import { ProofOfAsset } from "@netzero/por_circuits"
 
 
 export class NetZeroAssetVerifier extends SmartContract {

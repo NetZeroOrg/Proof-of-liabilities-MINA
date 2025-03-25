@@ -24,12 +24,10 @@ export class NetZeroLiabilitiesVerifier extends SmartContract {
     this.rootHash.set(Field(0))
     this.saltB.set(Field(0))
     this.saltS.set(Field(0))
-    Provable.log(this.sender.getAndRequireSignature())
     this.admin.set(this.sender.getAndRequireSignature())
   }
 
   @method async setAdmin(admin: PublicKey) {
-    Provable.log(this.sender.getAndRequireSignature())
     this.sender.getAndRequireSignature().assertEquals(this.admin.getAndRequireEquals())
     this.admin.set(admin)
   }
