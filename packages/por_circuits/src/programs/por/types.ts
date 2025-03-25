@@ -1,6 +1,7 @@
 import { Bool, Field, Provable, Struct, Group } from "o1js";
-import { NUM_ACTUAL_ADDRESS, NUM_PUBLIC_ADDRESS, NUM_ASSETS, } from ".";
-
+export const NUM_ASSETS = 7
+export const NUM_ACTUAL_ADDRESS = 100
+export const NUM_PUBLIC_ADDRESS = 200
 export class PublicAddress extends Struct({
     addresses: Provable.Array(Field, NUM_PUBLIC_ADDRESS)
 }) { }

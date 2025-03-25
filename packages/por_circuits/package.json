@@ -1,11 +1,11 @@
 {
   "name": "@netzero/por_circuits",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/src/index.js",
+  "module": "./dist/src/index.mjs",
+  "types": "./dist/src/index.d.ts",
   "scripts": {
     "test": "jest --config jest.config.ts",
     "test:watch": "jest --config jest.config.ts --watch",
@@ -19,7 +19,8 @@
     "bech32": "^2.0.0",
     "bitcoinjs-lib": "^6.1.7",
     "bs58check": "^4.0.0",
-    "mina-attestations": "^0.4.1"
+    "mina-attestations": "^0.4.1",
+    "circuits": "workspace:*"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

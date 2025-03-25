@@ -37,7 +37,6 @@ export const btcAddressToField = (address: string): addressInfo => {
         wintessVersion = decoed.words[0];
         const words = bech32.fromWords(decoed.words.slice(1))
         hex = Buffer.from(words).toString("hex");
-        console.log(hex)
         const bigint = BigInt("0x" + hex);
         field = Field(bigint)
     } else {

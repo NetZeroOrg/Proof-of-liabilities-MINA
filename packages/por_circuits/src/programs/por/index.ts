@@ -1,9 +1,7 @@
 // You can put logic in different files if you want
 import { createForeignCurve, Crypto, ZkProgram, Field, Gadgets, Group, Poseidon, PrivateKey, Proof, Provable, PublicKey, SelfProof, method, } from "o1js";
-import { ProofOFAssetPublicInput, ProofOfAssetsPrivateInput, PublicAddress, SecretKeys } from "./types.js";
-export const NUM_ASSETS = Number(process.env.NUM_ASSETS) ?? 100
-export const NUM_ACTUAL_ADDRESS = Number(process.env!.NUM_ADDRESS)
-export const NUM_PUBLIC_ADDRESS = Number(process.env!.NUM_PUBLIC_ADDRESS)
+import { NUM_ACTUAL_ADDRESS, NUM_ASSETS, NUM_PUBLIC_ADDRESS, ProofOFAssetPublicInput, ProofOfAssetsPrivateInput, PublicAddress, SecretKeys } from "./types.js";
+
 class Secp256k1 extends createForeignCurve(Crypto.CurveParams.Secp256k1) { }
 
 /**

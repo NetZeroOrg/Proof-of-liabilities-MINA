@@ -5,8 +5,9 @@
 // and then we do a rangeCheck on (l - b) * G as we already know that the l is range checked and b is also range checked to be between 0 and 2^256
 
 import { Field, Group, Poseidon, Proof, ZkProgram } from "o1js";
-import { ProofOfSolvencyPublicInputs } from "./types";
-import { ProofOfAsset } from "../por";
+import { ProofOfSolvencyPublicInputs } from "./types.js";
+import { ProofOfAsset } from "../por/index.js";
+import { RangeCheckProof } from "circuits"
 
 const proofOfSolvency = async (
     publicInputs: ProofOfSolvencyPublicInputs,
@@ -45,7 +46,7 @@ export const proofOfSolvencyProgram = ZkProgram({
     publicInput: ProofOfSolvencyPublicInputs,
     methods: {
         proofOfSolvency: {
-            privateInputs: [ProofOfAsset, Proof<unknown, unknown>, Field, Field, Field, Field],
+            privateInputs: [ProofOfAsset, RangeCheckProof, Field, Field, Field, Field],
             method: proofOfSolvency
         }
     },

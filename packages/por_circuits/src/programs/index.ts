@@ -1,2 +1,2 @@
-export * from "./por"
-export * from "./pos"
+export * from "./por/index.js"
+export * from "./pos/index.js"
