@@ -1,4 +1,4 @@
-import { rangeCheckProgram } from "circuits/dist/index.js"
+import { rangeCheckProgram } from "@netzero/circuits/dist/index.js"
 import { Bytes32 } from "./bytes.js"
 import { NodePosition } from "./position.js"
 

@@ -4,7 +4,7 @@ import { Height, NodePosition } from "./position.js";
 import { TreeParams, treeParamsToJSON } from "./treeBuilder.js";
 import { Bytes32 } from "./bytes.js";
 import fs from "fs";
-import { RangeCheckProof } from "circuits/dist/index.js";
+import { RangeCheckProof } from "@netzero/circuits/dist/index.js";
 
 const NODE_PREFIX = "nodes"
 const TREE_PARAMS = "treeParams"
@@ -56,9 +56,7 @@ export class Store {
         })
         await client.connect()
 
-
         await client.set(HEIGHT_KEY, this.height._inner)
-
 
         // save the tree params
         if (this.treeParams) {

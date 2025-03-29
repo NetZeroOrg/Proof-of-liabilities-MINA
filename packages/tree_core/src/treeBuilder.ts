@@ -1,4 +1,4 @@
-import { rangeCheckProgram } from "circuits/dist/index.js";
+import { rangeCheckProgram } from "@netzero/circuits/dist/index.js";
 import { merge, mergePathNodes, newLeaf, newPaddingNode, newPadPathNode, Node, PathNode } from "./node.js";
 import { Height, NodePosition } from "./position.js";
 import { DBRecord, Direction, newPaddingNodeParams, newPaddingPathNode } from "./types.js";
@@ -240,10 +240,6 @@ export class TreeBuilder<N extends number> {
         const height = Height.fromNodesLen(leafNodes.length)
 
         if (saveRecordMap) {
-            // writing map to a file for testing
-            const filePath = path.join(__dirname, "recordMap.json");
-            fs.writeFileSync(filePath, JSON.stringify(Array.from(recordMap.entries())));
-
             // saving to redis
             const client = createClient({ url: reddisConnectionURI });
             await client.connect();

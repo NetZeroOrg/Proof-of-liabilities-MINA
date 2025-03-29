@@ -1,7 +1,7 @@
 import { merge, newLeaf, newPaddingNode, Node } from "../src/node"
 import { DBRecord } from "../src/types"
 import { randomBytes32 } from "../src/bytes"
-import { rangeCheckProgram } from "circuits"
+import { rangeCheckProgram } from "@netzero/circuits"
 import { Height, NodePosition } from "../src/position"
 
 describe("Node testing", () => {

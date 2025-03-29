@@ -1,4 +1,4 @@
-import { RangeCheckProof } from "circuits/dist/index.js";
+import { RangeCheckProof } from "@netzero/circuits/dist/index.js";
 import { newPadPathNode, PathNode, toPathNode } from "./node.js";
 import { Height, NodePosition } from "./position.js";
 import { Store } from "./store.js";
@@ -6,6 +6,7 @@ import { buildPathTree, paddingPathNodeContent } from "./treeBuilder.js";
 import { newPaddingPathNode } from "./types.js";
 import { kdf } from "./kdf.js";
 import { Bytes32 } from "./bytes.js";
+import { Field } from "o1js";
 
 export type Siblings = PathNode[]
 export type Lefts = boolean[]
@@ -65,11 +66,6 @@ export const generateMerkleWitness = (treeStore: Store, position: NodePosition, 
     return { path, lefts, aggregatedRangeProof }
 }
 
-export interface LiabilitiesProof {
-    witness: MerkleWitness
-    blidingFactor: Bytes32
-    userSecret: Bytes32
-}
 
 /**
  * @param treeParams The tree parameters for master secretes and salt
@@ -77,7 +73,7 @@ export interface LiabilitiesProof {
  * @param position the position of the leaf node for which the proof is to be generated
  * @returns the liabilities proof for the leaf node
  */
-export const generateProof = (treeStore: Store, position: NodePosition): LiabilitiesProof => {
+export const generateProof = (treeStore: Store, position: NodePosition): { witness: MerkleWitness, blindingFactor: Field, userSecret: Field } => {
     const paddingNodeFn = (position: NodePosition): newPaddingPathNode => {
         const padSecret = kdf(null, Bytes32.fromNodePos(position), treeStore.treeParams.masterSecret)
         const blindingFactor = kdf(treeStore.treeParams.saltB, null, padSecret)
@@ -87,7 +83,7 @@ export const generateProof = (treeStore: Store, position: NodePosition): Liabili
 
     const witness = generateMerkleWitness(treeStore, position, paddingNodeFn)
     const masterSecret = kdf(null, Bytes32.fromNumber(position.xCord()), treeStore.treeParams.masterSecret);
-    const blindingFactor = kdf(treeStore.treeParams.saltB, null, masterSecret)
-    const userSecret = kdf(treeStore.treeParams.saltS, null, masterSecret)
-    return { witness, blidingFactor: blindingFactor, userSecret }
+    const blindingFactor = kdf(treeStore.treeParams.saltB, null, masterSecret).toField()
+    const userSecret = kdf(treeStore.treeParams.saltS, null, masterSecret).toField()
+    return { witness, blindingFactor, userSecret }
 }

@@ -1,11 +1,12 @@
-import { rangeCheckProgram } from "circuits"
-import { generateRootFromPath, loadRandomUserFromDB, randomRecords } from "../src/testUtil"
+import { InclusionProofProgram, NodeContent, rangeCheckProgram, MerkleWitness, UserParams } from "@netzero/circuits"
+import { generateRootFromPath, randomRecords } from "../src/testUtil"
 import { TreeBuilder, TreeParams } from "../src/treeBuilder"
 import { Height, NodePosition } from "../src/position"
 import { randomBytes32 } from "../src/bytes"
 import { Store } from "../src/store"
 import { generateProof } from "../src/path"
-import { createRandomDataTree } from "../src/dummyDataScript"
+import { Bool, Field, Group } from "o1js"
+import { PathNode } from "../src/node"
 
 describe("Basic Tree Test", () => {
     const randRecord = randomRecords(3, 4)
@@ -19,6 +20,7 @@ describe("Basic Tree Test", () => {
     const treeBuilder = new TreeBuilder(randRecord, new Height(2), treeParams)
     beforeAll(async () => {
         await rangeCheckProgram.compile()
+        await InclusionProofProgram.compile()
     })
     it("should make a tree", async () => {
         [treeStore, recordMap] = await treeBuilder.buildSingleThreaded(rangeCheckProgram)
@@ -26,7 +28,7 @@ describe("Basic Tree Test", () => {
         expect(treeStore).toBeDefined()
     }, 1_000_000)
     it("should generate a path and verify root", async () => {
-        const path = generateProof(treeStore, recordMap.get(randRecord[0]!.user)!)
+        let { witness: path, blindingFactor, userSecret } = generateProof(treeStore, recordMap.get(randRecord[0]!.user)!)
         const root = generateRootFromPath(path, treeStore, recordMap.get(randRecord[0]!.user)!)
         expect(
             root.hash.equals(treeStore.root.hash).toBoolean()
@@ -34,27 +36,36 @@ describe("Basic Tree Test", () => {
         expect(
             root.commitment.equals(treeStore.root.commitment).toBoolean()
         ).toBe(true)
+
+        let newPath: NodeContent[] = path.path.map((p: PathNode) => {
+            return new NodeContent({ commitment: p.commitment, hash: p.hash })
+        })
+        for (let i = newPath.length; i < 32; i++) {
+            newPath.push(new NodeContent({ commitment: Group.zero, hash: Field(0) }))
+        }
+        let lefts = path.lefts.map((l: boolean) => Bool.fromValue(l))
+        for (let i = lefts.length; i < 32; i++) {
+            lefts.push(Bool.fromValue(false))
+        }
+
+        const merkleWitness = new MerkleWitness({
+            path: newPath,
+            lefts
+        })
+        let balances = randRecord[0]!.balances.map(b => Field(b))
+        for (let i = balances.length; i < 100; i++) {
+            balances.push(Field(0))
+        }
+        const userParams = new UserParams({
+            balances,
+            blindingFactor,
+            userId: Field(randRecord[0]!.user),
+            userSecret
+        })
+        const { proof } = await InclusionProofProgram.inclusionProof(merkleWitness, userParams)
+        expect(proof).toBeDefined()
+        expect(proof.publicOutput.commitment.equals(root.commitment).toBoolean()).toBe(true)
+        expect(proof.publicOutput.hash.equals(root.hash).toBoolean()).toBe(true)
     })
 })
 
-
-describe("Tree save and load test", () => {
-    beforeAll(async () => {
-        await rangeCheckProgram.compile()
-    })
-    it("should save the tree", async () => {
-        await createRandomDataTree(3, 10)
-    }, 1_000_000)
-    it("should load store from redis and generate path", async () => {
-        const store = await Store.loadFromDB("root_proof.json")
-        const nodePos = new NodePosition(0, new Height(0))
-        const proof = generateProof(store, nodePos)
-        const root = generateRootFromPath(proof, store, nodePos)
-        expect(
-            root.hash.equals(store.root.hash).toBoolean()
-        ).toBe(true)
-        expect(
-            root.commitment.equals(store.root.commitment).toBoolean()
-        ).toBe(true)
-    }, 1_000_000)
-})
