@@ -1,5 +1,5 @@
 // You can put logic in different files if you want
-import { createForeignCurve, Crypto, ZkProgram, Field, Gadgets, Group, Poseidon, PrivateKey, Proof, Provable, PublicKey, SelfProof, method, } from "o1js";
+import { createForeignCurve, Crypto, ZkProgram, Field, Gadgets, Group, Poseidon, PrivateKey, Proof, Provable, PublicKey, SelfProof, method, Bool, } from "o1js";
 import { NUM_ACTUAL_ADDRESS, NUM_ASSETS, NUM_PUBLIC_ADDRESS, ProofOFAssetPublicInput, ProofOfAssetsPrivateInput, PublicAddress, SecretKeys } from "./types.js";
 
 class Secp256k1 extends createForeignCurve(Crypto.CurveParams.Secp256k1) { }
@@ -45,7 +45,7 @@ export async function ethereumSelectorArray(
     for (let i = 0; i < NUM_ACTUAL_ADDRESS; i++) {
         const computedEthPublicKey = Provable.witness(Secp256k1, () => Secp256k1.generator.scale(secretKeys.secretKeys[i]!.toBigInt()))
         const actualKey = Provable.witness(Secp256k1, () => Secp256k1.fromEthers(addresses.addresses[i]!.toBigInt().toString(16)))
-        const isEqual = computedEthPublicKey.x.equals(actualKey.x.toBigInt()).and(computedEthPublicKey.y.equals(actualKey.y.toBigInt()))
+        const isEqual = Provable.witness(Bool, () => computedEthPublicKey.x.equals(actualKey.x.toBigInt()).and(computedEthPublicKey.y.equals(actualKey.y.toBigInt())))
         const scalar = Provable.if(isEqual, Field(1), Field(0))
         commitment = commitment.add(Poseidon.hashToGroup(commitment.toFields()).scale(scalar))
     }

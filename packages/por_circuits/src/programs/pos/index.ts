@@ -7,7 +7,7 @@
 import { Field, Group, Poseidon, Proof, ZkProgram } from "o1js";
 import { ProofOfSolvencyPublicInputs } from "./types.js";
 import { ProofOfAsset } from "../por/index.js";
-import { RangeCheckProof } from "circuits"
+import { RangeCheckProof } from "@netzero/circuits"
 
 const proofOfSolvency = async (
     publicInputs: ProofOfSolvencyPublicInputs,

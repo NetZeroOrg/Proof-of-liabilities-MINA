@@ -1,7 +1,6 @@
 {
   "name": "@netzero/por_circuits",
-  "version": "0.0.1",
-  "private": true,
+  "version": "0.0.3",
   "type": "module",
   "main": "./dist/src/index.js",
   "module": "./dist/src/index.mjs",
@@ -13,14 +12,15 @@
     "build": "tsc"
   },
   "dependencies": {
+    "@netzero/circuits": "^0.0.2",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "axios": "^1.8.1",
     "bech32": "^2.0.0",
     "bitcoinjs-lib": "^6.1.7",
     "bs58check": "^4.0.0",
-    "mina-attestations": "^0.4.1",
-    "circuits": "workspace:*"
+    "csv-parser": "^3.2.0",
+    "mina-attestations": "^0.4.1"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

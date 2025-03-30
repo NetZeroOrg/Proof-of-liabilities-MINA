@@ -1,4 +1,5 @@
 import { Bool, Field, Provable, Struct, Group } from "o1js";
+//TODO: add dynamic arrays from mina-attestations
 export const NUM_ASSETS = 7
 export const NUM_ACTUAL_ADDRESS = 100
 export const NUM_PUBLIC_ADDRESS = 200
