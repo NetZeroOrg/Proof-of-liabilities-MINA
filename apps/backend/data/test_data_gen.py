@@ -24,7 +24,7 @@ def generate_realistic_email():
     domain = random.choice(DOMAINS)
     return f"{first}.{last}{number}@{domain}"
 
-def generate_asset_data(num_users: int, num_assets: int, output_file: str = "data.csv"):
+def generate_asset_data(num_users: int, num_assets: int, output_file: str = "data-small.csv"):
     """
     Generates a CSV file with random user emails and asset values.
 
@@ -41,21 +41,22 @@ def generate_asset_data(num_users: int, num_assets: int, output_file: str = "dat
 
         for _ in range(num_users):
             user_email = generate_realistic_email()
-            asset_values = [round(random.uniform(10, 50000), 2) for _ in range(num_assets)]  # More realistic range
+            asset_values = [random.randint(10, 50000) for _ in range(num_assets)]  # More realistic range
             writer.writerow([user_email] + asset_values)
 
     print(f"Data generation complete. File saved as '{output_file}'.")
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: python script.py <num_users> <num_assets>")
+    if len(sys.argv) != 4:
+        print("Usage: python script.py <num_users> <num_assets> <out_file>")
         sys.exit(1)
 
     try:
         num_users = int(sys.argv[1])
         num_assets = int(sys.argv[2])
+        out_file = sys.argv[3]
     except ValueError:
         print("Error: num_users and num_assets must be integers.")
         sys.exit(1)
 
-    generate_asset_data(num_users, num_assets, "data.csv")
+    generate_asset_data(num_users, num_assets, out_file)

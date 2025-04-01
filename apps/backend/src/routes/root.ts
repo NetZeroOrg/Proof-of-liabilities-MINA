@@ -2,6 +2,7 @@ import { FastifyPluginAsync } from 'fastify'
 import fs from 'fs';
 import path from 'path';
 import csv from 'csv-parser';
+import { readdir, readFile } from 'fs/promises';
 
 const root: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   let assets: string[] = []
@@ -11,7 +12,7 @@ const root: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
   // returns the assets that the cex have
   fastify.get("/assets", async function (request, reply) {
-    const filePath = path.join(import.meta.dirname, "../..", "data", "data.csv");
+    const filePath = path.join(import.meta.dirname, "../..", "data", "data-small.csv");
 
     if (assets.length === 0) {
       assets = await new Promise<string[]>((resolve, reject) => {
@@ -25,6 +26,25 @@ const root: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
     }
 
     reply.send({ assets });
+  })
+
+  fastify.get('/contracts', async function (request, reply) {
+    const keysDir = path.join(import.meta.dirname, "../../..", "backend-contract", "keys");
+
+    const files = await readdir(keysDir);
+    const publicKeys: {
+      [key: string]: string
+    } = {};
+
+    for (const file of files) {
+      if (file.endsWith("Verifier.json")) {
+        const filePath = path.join(keysDir, file);
+        const fileContent = JSON.parse(await readFile(filePath, "utf-8"));
+        publicKeys[file.replace(".json", "") as string] = fileContent.publicKey;
+      }
+    }
+
+    reply.send(publicKeys);
   })
 }
 

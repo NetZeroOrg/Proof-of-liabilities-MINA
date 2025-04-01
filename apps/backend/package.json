@@ -1,6 +1,6 @@
 {
   "type": "module",
-  "name": "backend",
+  "name": "@netzero/backend",
   "version": "1.0.0",
   "description": "This project was bootstrapped with Fastify-CLI.",
   "main": "app.ts",
