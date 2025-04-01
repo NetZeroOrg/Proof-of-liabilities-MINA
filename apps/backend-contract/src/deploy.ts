@@ -14,7 +14,7 @@
  */
 import { Mina, NetworkId, PrivateKey, PublicKey } from 'o1js';
 import { NetZeroLiabilitiesVerifier } from './polVerifier.js';
-import { InclusionProofProgram, rangeCheckProgram } from "circuits";
+import { InclusionProofProgram, rangeCheckProgram } from "@netzero/circuits";
 import fs from 'fs/promises';
 import { AccountUpdate } from 'o1js';
 import { proofOfAssetProgram, selectorZkProgram, proofOfSolvencyProgram } from '@netzero/por_circuits';
@@ -107,7 +107,7 @@ await NetZeroLiabilitiesVerifier.compile();
 
 console.log('Deploying the contract..');
 // deploy the contract
-deployContract(
+await deployContract(
   feepayerAddress,
   liabVerifierZkApp,
   liabilitiesVerifierKey,
@@ -118,17 +118,24 @@ console.log("PROOF OF ASSETS")
 const AssetVerifierKey = PrivateKey.random();
 const assetVerifierAddress = AssetVerifierKey.toPublicKey();
 const assetVerifierZkApp = new NetZeroAssetVerifier(assetVerifierAddress);
+
+console.log("Waiting for 7 minutes for deployment...")
+await new Promise((resolve) => setTimeout(resolve, 10 * 60 * 1000));
+
 console.log("Compiling proof of assets programs...")
 await selectorZkProgram.compile()
 await proofOfAssetProgram.compile();
 await NetZeroAssetVerifier.compile();
 console.log("Deploying proof of assets programs done!")
-deployContract(
+await deployContract(
   feepayerAddress,
   assetVerifierZkApp,
   AssetVerifierKey,
 )
 
+
+console.log("Waiting for 7 minutes for deployment...")
+await new Promise((resolve) => setTimeout(resolve, 10 * 60 * 1000));
 console.log("PROOF OF SOLVENCY")
 const posVerifierKey = PrivateKey.random();
 const posVerifierAddress = posVerifierKey.toPublicKey();
@@ -138,7 +145,7 @@ await rangeCheckProgram.compile()
 await proofOfSolvencyProgram.compile()
 await ProofOfSolvencyVerifier.compile()
 console.log("Deploying proof of solvency programs done!")
-deployContract(
+await deployContract(
   feepayerAddress,
   posVerifierZkApp,
   posVerifierKey,
@@ -157,3 +164,9 @@ const saveKeyToFile = async (fileName: string, privateKey: PrivateKey, publicKey
 await saveKeyToFile('liabilitiesVerifier', liabilitiesVerifierKey, liabVerifierAddress);
 await saveKeyToFile('assetVerifier', AssetVerifierKey, assetVerifierAddress);
 await saveKeyToFile('solvencyVerifier', posVerifierKey, posVerifierAddress);
+
+//TODO: send contract addresses to the netzero server
+// const netZeroServerUrl = process.env.NETZERO_SERVER_URL;
+// if (!netZeroServerUrl)
+//   throw Error('Missing NETZERO_SERVER_URL environment variable.');
+// const request

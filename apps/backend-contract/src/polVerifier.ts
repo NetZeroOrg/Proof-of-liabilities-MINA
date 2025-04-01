@@ -1,5 +1,5 @@
 import { Field, Group, method, Provable, PublicKey, SmartContract, State, state } from "o1js";
-import { InclusionProof } from "circuits"
+import { InclusionProof } from "@netzero/circuits"
 
 
 export class NetZeroLiabilitiesVerifier extends SmartContract {
@@ -34,6 +34,14 @@ export class NetZeroLiabilitiesVerifier extends SmartContract {
 
   @method async setPublicParameters(saltS: Field, saltB: Field) {
     this.sender.getAndRequireSignature().assertEquals(this.admin.getAndRequireEquals())
+    this.saltB.set(saltB)
+    this.saltS.set(saltS)
+  }
+
+  @method async setRootAndParams(rootHash: Field, rootCommitment: Group, saltS: Field, saltB: Field) {
+    this.sender.getAndRequireSignature().assertEquals(this.admin.getAndRequireEquals())
+    this.rootHash.set(rootHash)
+    this.rootCommitment.set(rootCommitment)
     this.saltB.set(saltB)
     this.saltS.set(saltS)
   }
