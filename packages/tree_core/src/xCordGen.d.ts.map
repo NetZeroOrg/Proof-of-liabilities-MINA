@@ -1,1 +1,0 @@
-{"version":3,"file":"xCordGen.d.ts","sourceRoot":"","sources":["xCordGen.ts"],"names":[],"mappings":"AAEA,qBAAa,cAAc;IACvB,OAAO,CAAC,MAAM,CAAsB;IACpC,OAAO,CAAC,QAAQ,CAAS;IACzB,OAAO,CAAC,CAAC,CAAS;gBAEN,QAAQ,EAAE,MAAM;IAMrB,QAAQ,IAAI,MAAM;IAuBlB,KAAK,IAAI,IAAI;CAIvB"}

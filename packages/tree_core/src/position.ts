@@ -8,6 +8,7 @@ export class Height {
         this._inner = inner
     }
 
+    // the root is height 0 thus the max number of nodes 
     public maxNodes(): number {
         return 2 ** this._inner
     }

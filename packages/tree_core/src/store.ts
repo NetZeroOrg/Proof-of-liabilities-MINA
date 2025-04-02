@@ -17,9 +17,9 @@ function treeParamsFromRedisObject(
         [x: string]: string
     }
 ): TreeParams {
-    const masterSecret = Bytes32.fromNumber(Number(value['masterSecret']!))
-    const saltS = Bytes32.fromNumber(Number(value['saltS']!))
-    const saltB = Bytes32.fromNumber(Number(value['saltB']!))
+    const masterSecret = Bytes32.fromBigInt(BigInt(value['masterSecret']!))
+    const saltS = Bytes32.fromBigInt(BigInt(value['saltS']!))
+    const saltB = Bytes32.fromBigInt(BigInt(value['saltB']!))
     return {
         masterSecret,
         saltB,

@@ -8,25 +8,30 @@ export class Bytes32 {
         if (data.length !== 256) {
             throw new Error('Bytes32 must be exactly 256 bits');
         }
-        this.data = data;
-    }
-
-    toNumber(): number {
-        return this.data.reduce((num, bit, i) => num + (bit ? (1 << i) : 0), 0);
+        this.data = [...data]; // Create a copy to avoid unintended mutations
     }
 
     toBigint(): bigint {
-        return BigInt(this.toNumber());
+        // Process in chunks of 8 bits to avoid precision issues
+        let result = BigInt(0);
+        for (let i = 0; i < 256; i++) {
+            if (this.data[i]) {
+                result |= BigInt(1) << BigInt(i);
+            }
+        }
+        return result;
     }
 
     toString(): string {
-        return this.toNumber().toString();
+        return this.toBigint().toString();
     }
 
     toField(): Field {
-        return Field(this.toNumber());
+        // Note: Field might have its own size limitations
+        return Field(this.toBigint());
     }
 
+    // processing the the bytes 8 at a time
     toBuffer(): Buffer {
         const byteArray = new Uint8Array(32);
         for (let i = 0; i < 256; i++) {
@@ -41,32 +46,50 @@ export class Bytes32 {
         if (buffer.length !== 32) {
             throw new Error('Buffer must be exactly 32 bytes');
         }
-
         const bits: boolean[] = new Array(256).fill(false);
         for (let i = 0; i < 256; i++) {
             bits[i] = (buffer[Math.floor(i / 8)]! & (1 << (i % 8))) !== 0;
         }
-
         return new Bytes32(bits);
     }
 
     static fromNumber(num: number): Bytes32 {
-        const bits: boolean[] = Array.from({ length: 256 }, (_, i) => (num & (1 << i)) !== 0);
+        if (num < 0) throw new Error('Negative numbers not supported');
+
+        const bits: boolean[] = new Array(256).fill(false);
+        for (let i = 0; i < Math.min(53, 256); i++) {
+            bits[i] = (num & (1 << i)) !== 0;
+        }
+        return new Bytes32(bits);
+    }
+
+    static fromBigInt(bigint: bigint): Bytes32 {
+        if (bigint < 0) throw new Error('Negative numbers not supported');
+
+        const bits: boolean[] = new Array(256).fill(false);
+        for (let i = 0; i < 256; i++) {
+            bits[i] = (bigint & (BigInt(1) << BigInt(i))) !== BigInt(0);
+        }
         return new Bytes32(bits);
     }
 
     static fromNodePos(pos: NodePosition): Bytes32 {
-        const xBits = Array.from({ length: 53 }, (_, i) => (pos.x & (1 << i)) !== 0).fill(false);
-        const yBits = Array.from({ length: 8 }, (_, i) => (pos.y._inner & (1 << i)) !== 0).fill(false);
-        const newBits = xBits.concat(yBits);
-        if (newBits.length !== 256) {
-            for (let i = newBits.length; i < 256; i++) {
-                newBits.push(false);
-            }
+        const bits: boolean[] = new Array(256).fill(false);
+
+        // Set x bits (assuming pos.x is a number)
+        for (let i = 0; i < Math.min(53, 256); i++) {
+            bits[i] = (pos.x & (1 << i)) !== 0;
         }
-        return new Bytes32(newBits);
+
+        // Set y bits (assuming pos.y._inner is a number)
+        for (let i = 0; i < Math.min(8, 256 - 53); i++) {
+            bits[i + 53] = (pos.y._inner & (1 << i)) !== 0;
+        }
+
+        return new Bytes32(bits);
     }
 }
+
 
 export function randomBytes32(): Bytes32 {
     const bits: boolean[] = Array.from({ length: 256 }, () => Math.random() < 0.5);

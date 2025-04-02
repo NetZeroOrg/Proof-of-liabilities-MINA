@@ -88,6 +88,7 @@ async function singleThreadedTreeBuilder(
         let pairs: Pair[] = []
         for (let i = 0; i < nodes.length; i += 1) {
             if (y < (storeDepth ?? height._inner)) {
+                console.log(`setting node in nodemap for ${i} at height ${y}`)
                 nodeMap.set(nodes[i]![0].toMapKey(), nodes[i]![1])
             }
             const nodePos = nodes[i]![0]
@@ -107,7 +108,7 @@ async function singleThreadedTreeBuilder(
                 pairs.push({ left: undefined, right: nodes[i]! })
             }
         }
-        const newNodes = []
+        const newNodes: [NodePosition, Node][] = []
         for (let i = 0; i < pairs.length; i++) {
             newNodes.push(await mergePair(pairs[i]!, paddingNodeClosure))
         }
@@ -135,7 +136,7 @@ export function buildPathTree(
         throw new Error(`Too many leaf nodes, max is ${maxLeafs}`)
     }
     let nodes = leafNodes
-    for (let y = 0; y < height._inner; y++) {
+    for (let y = 0; y <= height._inner; y++) {
         let pairs: PathPair[] = []
         for (let i = 0; i < nodes.length; i += 1) {
             const nodePos = nodes[i]![0]
@@ -187,7 +188,7 @@ export class TreeBuilder<N extends number> {
 
     constructor(records: DBRecord<N>[], height: Height, treeParams: TreeParams) {
         this.records = records;
-        this.xCordGen = new XCordGenerator(records.length);
+        this.xCordGen = new XCordGenerator(height.maxNodes());
         this.height = height;
         this.treeParams = treeParams;
     }
@@ -197,39 +198,25 @@ export class TreeBuilder<N extends number> {
     }
 
     public async buildSingleThreaded(compileRangeCheckProgram: typeof rangeCheckProgram, saveRecordMap?: boolean, reddisConnectionURI?: string): Promise<[Store, Map<string, NodePosition>]> {
+        console.log("Starting tree build...")
+
         const recordMap = new Map<string, NodePosition>();
         const zeroHeight = new Height(0);
 
+        console.time("Leaf nodes created in")
         const leafNodes: [NodePosition, Node][] = []
         for (let i = 0; i < this.records.length; i++) {
-            console.time("Generated a new X cordinate")
             const newXCord = this.xCordGen.genXCord();
-            console.timeEnd("Generated a new X cordinate")
             const nodePos = new NodePosition(newXCord, zeroHeight);
-
-            console.time("kdf1")
-            const masterSecret = kdf(null, Bytes32.fromNumber(newXCord), this.treeParams.masterSecret);
-            console.timeEnd("kdf1")
-            console.time("kdf2")
+            const masterSecret = kdf(null, Bytes32.fromBigInt(BigInt(this.records[i]!.user)), this.treeParams.masterSecret);
             const blindingFactor = kdf(this.treeParams.saltB, null, masterSecret)
-            console.timeEnd("kdf2")
-            console.time("kdf3")
             const userSecret = kdf(this.treeParams.saltS, null, masterSecret)
-            console.timeEnd("kdf3")
-            console.time("record Setting")
             recordMap.set(this.records[i]!.user, nodePos)
-            console.timeEnd("record Setting")
-
-            console.time("new leaf and push")
-            // this takes 13s how do I decrease this?
-            leafNodes.push([nodePos, await newLeaf({ record: this.records[i]!, compileRangeCheckProgram, userSecret, blindingFactor })])
-            console.timeEnd("new leaf and push")
+            const leafNode = await newLeaf({ record: this.records[i]!, compileRangeCheckProgram, userSecret, blindingFactor })
+            leafNodes.push([nodePos, leafNode])
         }
+        console.timeEnd("Leaf nodes created in")
 
-
-        leafNodes.sort((a, b) => a[0].xCord() - b[0].xCord());
-
-        this.xCordGen.flush()
 
         const paddingNodeFn = (position: NodePosition): newPaddingNodeParams => {
             const padSecret = kdf(null, Bytes32.fromNodePos(position), this.treeParams.masterSecret)
@@ -237,8 +224,20 @@ export class TreeBuilder<N extends number> {
             const userSecret = kdf(this.treeParams.saltS, null, padSecret)
             return { userSecret, blindingFactor, compiledRangeCheckProgram: compileRangeCheckProgram, position }
         }
-        const height = Height.fromNodesLen(leafNodes.length)
 
+        // fill out all the leaf nodes with remaining x positions left with padding nodes
+        const maxLeafs = this.height.maxNodes()
+        if (leafNodes.length < maxLeafs) {
+            for (let x = leafNodes.length; x < maxLeafs; x++) {
+                let newXCord = this.xCordGen.genXCord();
+                const nodePos = new NodePosition(newXCord, zeroHeight);
+                leafNodes.push([nodePos, await newPaddingNode(paddingNodeFn(nodePos))])
+            }
+        }
+
+        leafNodes.sort((a, b) => a[0].xCord() - b[0].xCord());
+
+        this.xCordGen.flush()
         if (saveRecordMap) {
             // saving to redis
             const client = createClient({ url: reddisConnectionURI });
@@ -248,6 +247,6 @@ export class TreeBuilder<N extends number> {
             }
         }
 
-        return [await singleThreadedTreeBuilder(leafNodes, height, paddingNodeFn, this.treeParams), recordMap]
+        return [await singleThreadedTreeBuilder(leafNodes, this.height, paddingNodeFn, this.treeParams), recordMap]
     }
 }

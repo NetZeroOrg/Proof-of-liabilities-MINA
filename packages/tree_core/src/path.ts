@@ -6,7 +6,6 @@ import { buildPathTree, paddingPathNodeContent } from "./treeBuilder.js";
 import { newPaddingPathNode } from "./types.js";
 import { kdf } from "./kdf.js";
 import { Bytes32 } from "./bytes.js";
-import { Field } from "o1js";
 
 export type Siblings = PathNode[]
 export type Lefts = boolean[]
@@ -21,7 +20,9 @@ export const generatePath = (treeStore: Store, position: NodePosition, paddingNo
     const lefts = []
 
     for (let y = 0; y < treeStore.height._inner; y++) {
+        console.log(currentPos)
         const siblingPos = currentPos.getSiblingPosition()
+        console.log(siblingPos)
         lefts.push(siblingPos.isLeft())
         const sibling = treeStore.map.get(siblingPos.toMapKey())
         if (sibling) {
@@ -73,7 +74,7 @@ export const generateMerkleWitness = (treeStore: Store, position: NodePosition, 
  * @param position the position of the leaf node for which the proof is to be generated
  * @returns the liabilities proof for the leaf node
  */
-export const generateProof = (treeStore: Store, position: NodePosition): { witness: MerkleWitness, blindingFactor: Field, userSecret: Field } => {
+export const generateProof = (treeStore: Store, position: NodePosition): { witness: MerkleWitness, } => {
     const paddingNodeFn = (position: NodePosition): newPaddingPathNode => {
         const padSecret = kdf(null, Bytes32.fromNodePos(position), treeStore.treeParams.masterSecret)
         const blindingFactor = kdf(treeStore.treeParams.saltB, null, padSecret)
@@ -82,8 +83,6 @@ export const generateProof = (treeStore: Store, position: NodePosition): { witne
     }
 
     const witness = generateMerkleWitness(treeStore, position, paddingNodeFn)
-    const masterSecret = kdf(null, Bytes32.fromNumber(position.xCord()), treeStore.treeParams.masterSecret);
-    const blindingFactor = kdf(treeStore.treeParams.saltB, null, masterSecret).toField()
-    const userSecret = kdf(treeStore.treeParams.saltS, null, masterSecret).toField()
-    return { witness, blindingFactor, userSecret }
+
+    return { witness }
 }
