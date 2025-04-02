@@ -25,5 +25,13 @@
             "jest",
         ],
         "skipLibCheck": true
-    }
+    },
+    "files.exclude": [
+        "**/*.test.ts",
+        "**/*.spec.ts",
+        "**/*.test.js",
+        "**/*.spec.js",
+        "**/node_modules",
+        "**/dist"
+    ],
 }

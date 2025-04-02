@@ -18,7 +18,6 @@ export const inclusionProof = async (witness: MerkleWitness, userParams: UserPar
 
     let rootComm = Group.generator.scale(liabilities).add(blindingPoint.scale(userParams.blindingFactor))
     let rootHash = Poseidon.hash([Field(10810197102n), Field(userParams.userId), userParams.userSecret])
-    // compute the user leaf
 
     //TODO: should this be here? doesn't `Provable.Array` always garantee the length will be 32?
     assert(witness.lefts.length == witness.path.length, "The path length and left array do not match")

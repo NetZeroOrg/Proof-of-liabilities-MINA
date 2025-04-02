@@ -9,7 +9,7 @@ importers:
   .:
     dependencies:
       o1js:
-        specifier: ^2.0.0
+        specifier: ^2.4.0
         version: 2.4.0
     devDependencies:
       prettier:
@@ -92,9 +92,12 @@ importers:
       '@babel/preset-typescript':
         specifier: ^7.26.0
         version: 7.27.0(@babel/core@7.26.10)
+      '@netzero/circuits':
+        specifier: ^0.0.3
+        version: 0.0.3(o1js@2.4.0)
       '@netzero/por_circuits':
-        specifier: workspace:*
-        version: link:../../packages/por_circuits
+        specifier: ^0.0.3
+        version: 0.0.3(o1js@2.4.0)
       '@types/jest':
         specifier: ^29.5.14
         version: 29.5.14
@@ -107,9 +110,6 @@ importers:
       '@typescript-eslint/parser':
         specifier: ^5.5.0
         version: 5.62.0(eslint@8.57.1)(typescript@5.6.3)
-      circuits:
-        specifier: workspace:*
-        version: link:../../packages/circuits
       eslint:
         specifier: ^8.7.0
         version: 8.57.1
@@ -208,6 +208,9 @@ importers:
 
   packages/por_circuits:
     dependencies:
+      '@netzero/circuits':
+        specifier: ^0.0.2
+        version: 0.0.2(o1js@2.4.0)
       axios:
         specifier: ^1.8.1
         version: 1.8.4
@@ -220,9 +223,9 @@ importers:
       bs58check:
         specifier: ^4.0.0
         version: 4.0.0
-      circuits:
-        specifier: workspace:*
-        version: link:../circuits
+      csv-parser:
+        specifier: ^3.2.0
+        version: 3.2.0
       mina-attestations:
         specifier: ^0.4.1
         version: 0.4.3(o1js@2.4.0)
@@ -255,6 +258,15 @@ importers:
       '@babel/preset-env':
         specifier: ^7.26.9
         version: 7.26.9(@babel/core@7.26.10)
+      '@netzero/circuits':
+        specifier: workspace:*
+        version: link:../circuits
+      '@netzero/contracts':
+        specifier: '*'
+        version: 0.1.4(o1js@2.4.0)
+      '@netzero/por_circuits':
+        specifier: workspace:*
+        version: link:../por_circuits
       '@repo/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
@@ -267,9 +279,6 @@ importers:
       babel-jest:
         specifier: ^29.7.0
         version: 29.7.0(@babel/core@7.26.10)
-      circuits:
-        specifier: workspace:*
-        version: link:../circuits
       redis:
         specifier: ^4.7.0
         version: 4.7.0
@@ -1263,6 +1272,21 @@ packages:
   '@lukeed/ms@2.0.2':
     resolution: {integrity: sha512-9I2Zn6+NJLfaGoz9jN3lpwDgAYvfGeNYdbAIjJOqzs4Tpc+VU3Jqq4IofSUBKajiDS8k9fZIg18/z13mpk1bsA==}
     engines: {node: '>=8'}
+
+  '@netzero/circuits@0.0.2':
+    resolution: {integrity: sha512-Qka8KnqTOXlj1LkY2DL+arA99+a7Hp5lr4CfDJzx0Cp5nUIePntnamQUcFwxPydOvq+/vabytSnrw6qO48eSWw==}
+
+  '@netzero/circuits@0.0.3':
+    resolution: {integrity: sha512-Urx0nxciwozu5OQlhHQVR5425aI/6FH5MJf4cIWI5WkbytmlE/G322UDKv/lPpNXqtDw8KnlmS0E9kKeXr+76Q==}
+
+  '@netzero/contracts@0.1.4':
+    resolution: {integrity: sha512-9EzmtRC7Z2X6z8XAeBuu9FfY7LVjg5zvn4a1NyZZsg6bBY4wtAljJ6hsBSzcqODga+Zk1GGbAg8+8987IqXHJQ==}
+    engines: {node: '>=18.14.0'}
+    peerDependencies:
+      o1js: 2.4.0
+
+  '@netzero/por_circuits@0.0.3':
+    resolution: {integrity: sha512-k3ptVbVF8anxq28CYY0sml/dgijFKp8X2QB5ykUEQPKL+2w1iNuuS5TWNTqvkKTSwGZt77pH7BmNCvZoPQOgmw==}
 
   '@next/eslint-plugin-next@15.2.4':
     resolution: {integrity: sha512-O8ScvKtnxkp8kL9TpJTTKnMqlkZnS+QxwoQnJwPGBxjBbzd6OVVPEJ5/pMNrktSyXQD/chEfzfFzYLM6JANOOQ==}
@@ -5199,6 +5223,43 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.0
 
   '@lukeed/ms@2.0.2': {}
+
+  '@netzero/circuits@0.0.2(o1js@2.4.0)':
+    dependencies:
+      mina-attestations: 0.5.0(o1js@2.4.0)
+    optionalDependencies:
+      '@repo/eslint-config': link:packages/eslint-config
+      '@repo/typescript-config': link:packages/typescript-config
+    transitivePeerDependencies:
+      - o1js
+
+  '@netzero/circuits@0.0.3(o1js@2.4.0)':
+    dependencies:
+      mina-attestations: 0.5.0(o1js@2.4.0)
+    optionalDependencies:
+      '@repo/eslint-config': link:packages/eslint-config
+      '@repo/typescript-config': link:packages/typescript-config
+    transitivePeerDependencies:
+      - o1js
+
+  '@netzero/contracts@0.1.4(o1js@2.4.0)':
+    dependencies:
+      o1js: 2.4.0
+
+  '@netzero/por_circuits@0.0.3(o1js@2.4.0)':
+    dependencies:
+      '@netzero/circuits': 0.0.2(o1js@2.4.0)
+      axios: 1.8.4
+      bech32: 2.0.0
+      bitcoinjs-lib: 6.1.7
+      bs58check: 4.0.0
+      mina-attestations: 0.4.3(o1js@2.4.0)
+    optionalDependencies:
+      '@repo/eslint-config': link:packages/eslint-config
+      '@repo/typescript-config': link:packages/typescript-config
+    transitivePeerDependencies:
+      - debug
+      - o1js
 
   '@next/eslint-plugin-next@15.2.4':
     dependencies:

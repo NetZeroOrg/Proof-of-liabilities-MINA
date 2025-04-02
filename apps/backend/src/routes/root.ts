@@ -12,7 +12,7 @@ const root: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
   // returns the assets that the cex have
   fastify.get("/assets", async function (request, reply) {
-    const filePath = path.join(import.meta.dirname, "../..", "data", "data-small.csv");
+    const filePath = path.join(import.meta.dirname, "../..", "data", "data-small-1.csv");
 
     if (assets.length === 0) {
       assets = await new Promise<string[]>((resolve, reject) => {
