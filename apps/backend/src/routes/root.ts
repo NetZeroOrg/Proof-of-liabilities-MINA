@@ -12,11 +12,11 @@ const root: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
   // returns the assets that the cex have
   fastify.get("/assets", async function (request, reply) {
-    const filePath = path.join(import.meta.dirname, "../..", "data", "data-small-1.csv");
 
+    console.log("assets", fastify.config.ASSET_DATA_FILE)
     if (assets.length === 0) {
       assets = await new Promise<string[]>((resolve, reject) => {
-        fs.createReadStream(filePath)
+        fs.createReadStream(fastify.config.ASSET_DATA_FILE)
           .pipe(csv())
           .on('headers', (headers) => {
             resolve(headers.slice(1)); // Skip the first header and return the rest

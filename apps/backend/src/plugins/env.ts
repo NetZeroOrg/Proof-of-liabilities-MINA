@@ -10,11 +10,12 @@ export interface EnvConfig {
     NETZERO_BACKEND_VERIFY_API: string;
     CEX_ID: string;
     API_KEY: string;
+    ASSET_DATA_FILE: string;
 }
 
 const schema = {
     type: 'object',
-    required: ['PORT', 'REDIS_URL', 'ROOT_PROOF_PATH'],
+    required: ['PORT', 'REDIS_URL', 'ROOT_PROOF_PATH', 'ASSET_DATA_FILE', 'NETZERO_BACKEND_VERIFY_API', 'CEX_ID', 'API_KEY'],
     properties: {
         PORT: {
             type: 'number',
@@ -24,7 +25,8 @@ const schema = {
         ROOT_PROOF_PATH: { type: 'string' },
         NETZERO_BACKEND_VERIFY_API: { type: 'string' },
         CEX_ID: { type: 'string' },
-        API_KEY: { type: 'string' }
+        API_KEY: { type: 'string' },
+        ASSET_DATA_FILE: { type: 'string' }
     }
 };
 

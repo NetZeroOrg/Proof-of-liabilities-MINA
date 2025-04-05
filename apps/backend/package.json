@@ -30,7 +30,9 @@
     "fastify-cli": "^7.3.0",
     "fastify-plugin": "^5.0.0",
     "tree_core": "workspace:*",
-    "mina-attestations": "0.5.0"
+    "mina-attestations": "0.5.0",
+    "@netzero/por_circuits": "workspace:*",
+    "@netzero/contracts": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.1.0",
