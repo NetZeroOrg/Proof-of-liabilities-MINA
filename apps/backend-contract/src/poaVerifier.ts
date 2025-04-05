@@ -1,5 +1,5 @@
 import { Field, Group, method, Poseidon, PublicKey, SmartContract, state, State } from "o1js";
-import { ProofOfAsset } from "@netzero/por_circuits"
+import { ProofOfAsset, SelectorArrayProof } from "@netzero/por_circuits"
 
 
 export class NetZeroAssetVerifier extends SmartContract {
@@ -31,10 +31,12 @@ export class NetZeroAssetVerifier extends SmartContract {
         this.admin.set(admin)
     }
 
-    @method async setPublicParameters(selectorArrayCommitment: Group, assetCommitment: Group) {
+    @method async verifyAndSetSelectorCommitment(selectorArrayProof: SelectorArrayProof) {
         this.sender.getAndRequireSignature().assertEquals(this.admin.getAndRequireEquals())
-        this.selectorArrayCommitment.set(selectorArrayCommitment)
-        this.assetCommitment.set(assetCommitment)
+        // verify the proof
+        selectorArrayProof.verify()
+        // set the commitment
+        this.selectorArrayCommitment.set(selectorArrayProof.publicOutput)
     }
 
     @method async verifyProofOfAssetAndUpdateCommitment(proof: ProofOfAsset) {
@@ -43,10 +45,13 @@ export class NetZeroAssetVerifier extends SmartContract {
 
         // verify that the proof was calculated with the commited selector array and public parameters
         proof.publicInput.selectorArrayCommitment.assertEquals(this.selectorArrayCommitment.getAndRequireEquals())
-        Poseidon.hash(proof.publicInput.addresses).assertEquals(this.publicAddressesCommitment.getAndRequireEquals())
-        Poseidon.hash(proof.publicInput.balances).assertEquals(this.publicBalancesCommitment.getAndRequireEquals())
+
+        this.publicAddressesCommitment.set(Poseidon.hash(proof.publicInput.address.addresses.flatMap((pk) => pk.toFields())))
+        this.publicBalancesCommitment.set(Poseidon.hash(proof.publicInput.balances.flat()))
 
         // update the asset commitment
         this.assetCommitment.set(proof.publicOutput)
     }
+
+
 }

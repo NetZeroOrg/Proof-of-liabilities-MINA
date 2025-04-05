@@ -27,14 +27,21 @@ export class ProofOfSolvencyVerifier extends SmartContract {
     @method async setProofOfAssetsVerifier(proofOfAssetsVerifier: PublicKey) {
         // Verify that the sender is the admin
         this.sender.getAndRequireSignature().assertEquals(this.admin.getAndRequireEquals());
-        this.sender.getAndRequireSignature().assertEquals(this.proofOfAssetsVerifier.getAndRequireEquals());
         this.proofOfAssetsVerifier.set(proofOfAssetsVerifier);
     }
 
     @method async setProofOfLiabilitiesVerifier(proofOfLiabilitiesVerifier: PublicKey) {
         // Verify that the sender is the admin
         this.sender.getAndRequireSignature().assertEquals(this.admin.getAndRequireEquals());
-        this.sender.getAndRequireSignature().assertEquals(this.proofOfLiabilitiesVerifier.getAndRequireEquals());
+        this.proofOfLiabilitiesVerifier.set(proofOfLiabilitiesVerifier);
+    }
+
+    @method async setContractAddresses(
+        proofOfAssetsVerifier: PublicKey,
+        proofOfLiabilitiesVerifier: PublicKey
+    ) {
+        this.sender.getAndRequireSignature().assertEquals(this.admin.getAndRequireEquals());
+        this.proofOfAssetsVerifier.set(proofOfAssetsVerifier);
         this.proofOfLiabilitiesVerifier.set(proofOfLiabilitiesVerifier);
     }
 
