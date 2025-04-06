@@ -4,7 +4,7 @@
 // we check if (l - b) * G = liabilities commitment - asset commitment
 // and then we do a rangeCheck on (l - b) * G as we already know that the l is range checked and b is also range checked to be between 0 and 2^256
 
-import { Field, Group, Poseidon, Proof, ZkProgram } from "o1js";
+import { Field, Gadgets, Group, Poseidon, Proof, Provable, ZkProgram } from "o1js";
 import { ProofOfSolvencyPublicInputs } from "./types.js";
 import { ProofOfAsset } from "../por/index.js";
 import { RangeCheckProof } from "@netzero/circuits"
@@ -12,33 +12,36 @@ import { RangeCheckProof } from "@netzero/circuits"
 const proofOfSolvency = async (
     publicInputs: ProofOfSolvencyPublicInputs,
     assetProof: ProofOfAsset,
-    liabilitiesRangeCheckProof: Proof<unknown, unknown>,
+    liabilitiesRangeCheckProof: RangeCheckProof,
     liabiltiesBlindingFactor: Field,
     assetBlindingFactor: Field,
     liabilityValue: Field,
     assetsValue: Field
 ) => {
+    Provable.log(assetsValue)
+    Provable.log(liabilityValue)
+    Provable.log(assetBlindingFactor)
+    Provable.log(liabiltiesBlindingFactor)
+
     // That the proof of asset is for the correct asset commitment and it also verifies that the balance is range checked
     assetProof.verify()
     assetProof.publicOutput.assertEquals(publicInputs.assetsCommitment)
-
     // that l is range checked
     liabilitiesRangeCheckProof.verify()
 
-    liabilityValue.assertGreaterThan(assetsValue)
+    // that the asset value is range checked
+    assetsValue.assertGreaterThanOrEqual(liabilityValue)
 
     // the blinding point H
     const blindingPoint = Poseidon.hashToGroup(Group.generator.toFields())
 
-    // (l - b) * G + (r_l - r_a) * H
-    const netCommitment = publicInputs.liabilitiesCommitment.add(publicInputs.assetsCommitment.neg())
-    // (l - b) * G
-    const netCommitmentWithoutBliding = netCommitment.add(blindingPoint.scale(liabiltiesBlindingFactor.sub(assetBlindingFactor)).neg())
-
-    const computedNetCommitment = Group.generator.scale(liabilityValue.sub(assetsValue))
+    // this should be (b - l) * G + (r_a - r_l) * H
+    const netCommitment = publicInputs.assetsCommitment.add(publicInputs.liabilitiesCommitment.neg())
+    // this is (b - l) * G + (r_a - r_l) * H
+    const computedNetCommitment = Group.generator.scale(assetsValue.sub(liabilityValue)).add(blindingPoint.scale(assetBlindingFactor.sub(liabiltiesBlindingFactor)))
 
     // check that the net commitment is equal to the computed net commitment
-    computedNetCommitment.assertEquals(netCommitmentWithoutBliding)
+    computedNetCommitment.assertEquals(netCommitment)
 }
 
 export const proofOfSolvencyProgram = ZkProgram({

@@ -1,6 +1,6 @@
 {
   "name": "@netzero/por_circuits",
-  "version": "0.0.3",
+  "version": "0.0.8",
   "type": "module",
   "main": "./dist/src/index.js",
   "module": "./dist/src/index.mjs",
@@ -12,7 +12,7 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@netzero/circuits": "^0.0.2",
+    "@netzero/circuits": "^0.0.4",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "axios": "^1.8.1",
