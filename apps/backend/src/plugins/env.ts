@@ -8,14 +8,14 @@ export interface EnvConfig {
     REDIS_URL: string;
     ROOT_PROOF_PATH: string;
     NETZERO_BACKEND_VERIFY_API: string;
-    CEX_ID: string;
-    API_KEY: string;
+    EXCHANGE_ID: string;
+    NET_ZERO_API_KEY: string;
     ASSET_DATA_FILE: string;
 }
 
 const schema = {
     type: 'object',
-    required: ['PORT', 'REDIS_URL', 'ROOT_PROOF_PATH', 'ASSET_DATA_FILE', 'NETZERO_BACKEND_VERIFY_API', 'CEX_ID', 'API_KEY'],
+    required: ['PORT', 'REDIS_URL', 'ROOT_PROOF_PATH', 'ASSET_DATA_FILE', 'NETZERO_BACKEND_VERIFY_API', 'EXCHANGE_ID', 'NET_ZERO_API_KEY'],
     properties: {
         PORT: {
             type: 'number',
@@ -24,8 +24,8 @@ const schema = {
         REDIS_URL: { type: 'string' },
         ROOT_PROOF_PATH: { type: 'string' },
         NETZERO_BACKEND_VERIFY_API: { type: 'string' },
-        CEX_ID: { type: 'string' },
-        API_KEY: { type: 'string' },
+        EXCHANGE_ID: { type: 'string' },
+        NET_ZERO_API_KEY: { type: 'string' },
         ASSET_DATA_FILE: { type: 'string' }
     }
 };
@@ -39,6 +39,8 @@ const options = {
         debug: true
     }
 };
+
+console.log(options)
 
 export default fp<{}>(async (fastify: FastifyInstance) => {
     // Register the fastify-env plugin with the schema and options

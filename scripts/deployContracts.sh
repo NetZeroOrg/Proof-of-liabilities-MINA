@@ -1,21 +1,60 @@
 #!/bin/bash
 set -euo pipefail
-pwd
-# Clear the .env file
-cd apps/backend-contract || { echo "Failed to change directory to apps/backend-contract"; exit 1; }
-echo "Deploying contracts..."
-if ! pnpm run deploy; then
-    echo "Error: Contract deployment failed."
-    exit 1
+cd apps/backend-contract
+Check if deployForce flag is given
+if [[ "${1:-}" == "--deployForce" ]]; then
+    echo "deployForce flag detected. Deploying contracts without checks..."
+    if ! pnpm run deploy; then
+        echo "Error: Contract deployment failed."
+        exit 1
+    fi
+    echo "Contracts deployed successfully with deployForce flag."
+    exit 0
 fi
-echo "Copying contracts addresses... to the env file"
-pwd
-key_dir="keys/"
+# Clear the .env file
 env_file="../../.env"
+required_vars=("ASSET_CONTRACT_ADDRESS" "LIABILITIES_CONTRACT_ADDRESS" "SOLVENCY_CONTRACT_ADDRESS")
 
+# Check if all required variables are already present in the .env file
+all_vars_present=true
+for var in "${required_vars[@]}"; do
+    if ! grep -q "^${var}=" "$env_file"; then
+        all_vars_present=false
+        break
+    fi
+done
+
+if $all_vars_present; then
+    echo "All required variables are already present in the .env file. Skipping contract deployment."
+    exit 0
+fi
+
+echo "Checking if contract addresses already exist in the key directory..."
+files=("assetVerifier.json" "liabilitiesVerifier.json" "solvencyVerifier.json")
+key_dir="keys/"
+addresses_exist=true
+for file in "${files[@]}"; do
+    if [[ ! -f "$key_dir/$file" ]]; then
+        addresses_exist=false
+        break
+    fi
+done
+
+if $addresses_exist; then
+    echo "Contract addresses already exist in the key directory. Skipping deployment."
+else
+    echo "Deploying contracts..."
+    if ! pnpm run deploy; then
+        echo "Error: Contract deployment failed."
+        exit 1
+    fi
+    echo "Copying contracts addresses... to the env file"
+fi
+
+pwd
 
 # List of known files
-files=("assetVerifier.json" "liabilitiesVerifier.json" "solvencyVerifier.json")
+
 names=("ASSET" "LIABILITIES" "SOLVENCY")
 
 for i in "${!files[@]}"; do

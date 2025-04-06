@@ -1,5 +1,5 @@
 import { ProofOfSolvency } from "@netzero/por_circuits";
-import { Field, method, PublicKey, SmartContract, state, State } from "o1js";
+import { Field, method, Provable, PublicKey, SmartContract, state, State } from "o1js";
 import { NetZeroLiabilitiesVerifier } from "./polVerifier.js";
 import { NetZeroAssetVerifier } from "./poaVerifier.js";
 
@@ -54,13 +54,13 @@ export class ProofOfSolvencyVerifier extends SmartContract {
 
         // verify the public inputs
         const liabilitiesVerifier = new NetZeroLiabilitiesVerifier(this.proofOfLiabilitiesVerifier.getAndRequireEquals());
+
         proof.publicInput.liabilitiesCommitment.assertEquals(liabilitiesVerifier.rootCommitment.getAndRequireEquals())
 
         const assetsVerifier = new NetZeroAssetVerifier(this.proofOfAssetsVerifier.getAndRequireEquals());
         proof.publicInput.assetsCommitment.assertEquals(assetsVerifier.assetCommitment.getAndRequireEquals())
 
         // increment the verified proofs
-        const verifiedProofs = this.verifiedProofs.getAndRequireEquals();
-        verifiedProofs.assertEquals(verifiedProofs.add(1));
+        this.verifiedProofs.set(this.verifiedProofs.getAndRequireEquals().add(1))
     }
 }

@@ -18,7 +18,8 @@ import {
     ProofOfAsset,
     proofOfSolvencyProgram,
     ProofOfSolvencyPublicInputs,
-    selectorZkProgram
+    selectorZkProgram,
+    ProofOfSolvency
 } from '@netzero/por_circuits';
 import { ProofOfSolvencyVerifier } from '@netzero/contracts';
 import { createClient } from 'redis';
@@ -149,67 +150,91 @@ const readProofofAsset = async (assetProofPath: string): Promise<ProofOfAsset> =
 
 
 export const proofOfSolencyRoutine = async () => {
-    const assetProofPath = process.env.ASSET_PROOF_PATH;
-    if (!assetProofPath)
-        throw Error('Missing ASSET_PROOF_PATH environment variable.');
+    // const assetProofPath = process.env.ASSET_PROOF_PATH;
+    // if (!assetProofPath)
+    //     throw Error('Missing ASSET_PROOF_PATH environment variable.');
 
-    const rootProofPath = process.env.ROOT_PROOF_PATH;
-    if (!rootProofPath)
-        throw Error('Missing ROOT_PROOF_PATH environment variable.');
+    // const rootProofPath = process.env.ROOT_PROOF_PATH;
+    // if (!rootProofPath)
+    //     throw Error('Missing ROOT_PROOF_PATH environment variable.');
 
-    const infoFilePath = process.env.INFO_FILE_PATH;
-    if (!infoFilePath)
-        throw Error('Missing INFO_FILE_PATH environment variable.');
+    // const infoFilePath = process.env.INFO_FILE_PATH;
+    // if (!infoFilePath)
+    //     throw Error('Missing INFO_FILE_PATH environment variable.');
 
-    const redisConnectionUrl = process.env.REDIS_CONNECTION_URL;
+    // const redisConnectionUrl = process.env.REDIS_URL;
+    // console.log("Redis connection URL: ", redisConnectionUrl)
 
-    const { assetBlindingFactor, liabilitiesBlidingFactor, assetValue, liabilitiesValue, liabilitiesCommitment, assetCommitment } = await getInputs(infoFilePath, redisConnectionUrl);
-    console.log("liabilitiesCommitment", liabilitiesCommitment.toJSON())
-    const rootProof = await readRootProof(rootProofPath);
-    const assetProof = await readProofofAsset(assetProofPath);
+    // const { assetBlindingFactor, liabilitiesBlidingFactor, assetValue, liabilitiesValue, liabilitiesCommitment, assetCommitment } = await getInputs(infoFilePath, redisConnectionUrl);
+    // console.log("liabilitiesCommitment", liabilitiesCommitment.toJSON())
+    // const computedLiabilitiesCommitment = Group.generator.scale(liabilitiesValue).add(Poseidon.hashToGroup(Group.generator.toFields()).scale(liabilitiesBlidingFactor));
+    // console.log("computedLiabilitiesCommitment", computedLiabilitiesCommitment.toJSON())
+
+    // const computedAsssetCommitment = Group.generator.scale(assetValue).add(Poseidon.hashToGroup(Group.generator.toFields()).scale(assetBlindingFactor));
+    // console.log("computedAsssetCommitment", computedAsssetCommitment.toJSON())
+    // console.log(
+    //     "assetCommitment",
+    //     assetCommitment.toJSON(),
+    // )
+    // const rootProof = await readRootProof(rootProofPath);
+    // const assetProof = await readProofofAsset(assetProofPath);
 
 
-    const pubIn = new ProofOfSolvencyPublicInputs({
-        liabilitiesCommitment,
-        assetsCommitment: assetCommitment,
-    })
-    const { proof } = await proofOfSolvencyProgram.proofOfSolvency(
-        pubIn,
-        assetProof,
-        rootProof,
-        liabilitiesBlidingFactor,
-        assetBlindingFactor,
-        liabilitiesValue,
-        assetValue
-    )
+    // const pubIn = new ProofOfSolvencyPublicInputs({
+    //     liabilitiesCommitment,
+    //     assetsCommitment: assetCommitment,
+    // })
+    // const { proof } = await proofOfSolvencyProgram.proofOfSolvency(
+    //     pubIn,
+    //     assetProof,
+    //     rootProof,
+    //     liabilitiesBlidingFactor,
+    //     assetBlindingFactor,
+    //     liabilitiesValue,
+    //     assetValue
+    // )
 
     // save proof to file for serving
-    const proofFilePath = process.env.PROOF_FILE_PATH || 'proof_of_solvency.json';
+    // const proofFilePath = process.env.PROOF_FILE_PATH || 'proof_of_solvency.json';
+    // try {
+    //     writeFileSync(proofFilePath, JSON.stringify(proof.toJSON(), null, 2));
+    //     console.log(`Proof saved to file: ${proofFilePath}`);
+    // } catch (error) {
+    //     console.error('Error saving proof to file:', error);
+    // }
+
+    // Read the proof from the JSON file
+    const proofJsonFilePath = process.env.PROOF_JSON_FILE_PATH || 'proof_of_solvency.json';
+    console.log(zkApp.proofOfLiabilitiesVerifier.get().toBase58())
+    console.log(zkApp.proofOfAssetsVerifier.get().toBase58())
     try {
-        writeFileSync(proofFilePath, JSON.stringify(proof.toJSON(), null, 2));
-        console.log(`Proof saved to file: ${proofFilePath}`);
+        const proofJsonFile = readFileSync(proofJsonFilePath, 'utf8');
+        const proofJson = JSON.parse(proofJsonFile);
+        const savedProof = await ProofOfSolvency.fromJSON(proofJson);
+        const tx = await Mina.transaction(
+            { sender: feepayerAddress, fee },
+            async () => {
+                console.log("verifying selector proof")
+                await zkApp.verifyProofOfSolvency(savedProof)
+            })
+        console.log("proving transaction")
+        await tx.prove()
+        console.timeEnd("selector proof onchain commitment");
+        const { hash } = await tx.sign([feePayerKey]).send();
+        console.log("Broadcasting proof of execution to the Mina network");
+        console.log('Proof successfully read from file:', proofJsonFilePath);
     } catch (error) {
-        console.error('Error saving proof to file:', error);
+        console.error('Error reading proof from file:', error);
     }
 
     // verify on chain
-    const tx = await Mina.transaction(
-        { sender: feepayerAddress, fee },
-        async () => {
-            console.log("verifying selector proof")
-            await zkApp.verifyProofOfSolvency(proof)
-        })
-    console.log("proving transaction")
-    await tx.prove()
-    console.timeEnd("selector proof onchain commitment");
-    const { hash } = await tx.sign([feePayerKey]).send();
-    console.log("Broadcasting proof of execution to the Mina network");
+
     if (process.env.EXCHANGE_ID)
         console.log("Exchange ID: ", process.env.EXCHANGE_ID)
-    callNetZeroBackend(`/exhanges/${process.env.EXCHANGE_ID}/round/solvency/end`, {
-        endTime: new Date().toISOString(),
-        txnUrl: getTxnUrl(MINA_NETWORK_URL, hash),
-    })
+    // callNetZeroBackend(`/exhanges/${process.env.EXCHANGE_ID}/round/solvency/end`, {
+    //     endTime: new Date().toISOString(),
+    //     txnUrl: getTxnUrl(MINA_NETWORK_URL, hash),
+    // })
 }
 
 
@@ -217,15 +242,16 @@ export const proofOfSolencyRoutine = async () => {
 
 export const setContractAddresses = async () => {
     // set the contract addresses on chain
-    const LIABILIITES_CONTRACT_ADDRESS = process.env.LIABILIITES_CONTRACT_ADDRESS
-    if (!LIABILIITES_CONTRACT_ADDRESS)
+    const LIABILITIES_CONTRACT_ADDRESS = process.env.LIABILITIES_CONTRACT_ADDRESS
+    console.log(LIABILITIES_CONTRACT_ADDRESS)
+    if (!LIABILITIES_CONTRACT_ADDRESS)
         throw Error('Missing LIABILITES_CONTRACT_ADDRESS environment variable.');
 
     const ASSET_CONTRACT_ADDRESS = process.env.ASSET_CONTRACT_ADDRESS;
     if (!ASSET_CONTRACT_ADDRESS)
         throw Error('Missing ASSET_CONTRACT_ADDRESS environment variable.');
 
-    const liabilitiesVerifier = PublicKey.fromBase58(LIABILIITES_CONTRACT_ADDRESS);
+    const liabilitiesVerifier = PublicKey.fromBase58(LIABILITIES_CONTRACT_ADDRESS);
     const assetVerifier = PublicKey.fromBase58(ASSET_CONTRACT_ADDRESS);
 
     // set on chain
@@ -233,7 +259,7 @@ export const setContractAddresses = async () => {
         { sender: feepayerAddress, fee },
         async () => {
             console.log("verifying selector proof")
-            await zkApp.setContractAddresses(liabilitiesVerifier, assetVerifier)
+            await zkApp.setContractAddresses(assetVerifier, liabilitiesVerifier)
         })
 
     console.log("proving transaction")

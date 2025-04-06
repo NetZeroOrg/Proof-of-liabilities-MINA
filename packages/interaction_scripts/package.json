@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "@netzero/circuits": "^0.0.4",
-    "@netzero/contracts": "^0.1.7",
+    "@netzero/contracts": "workspace:*",
     "@netzero/por_circuits": "^0.0.8",
     "@types/yargs": "^17.0.33",
     "axios": "^1.8.1",

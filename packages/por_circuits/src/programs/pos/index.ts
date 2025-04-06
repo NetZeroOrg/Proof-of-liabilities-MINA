@@ -35,9 +35,9 @@ const proofOfSolvency = async (
     // the blinding point H
     const blindingPoint = Poseidon.hashToGroup(Group.generator.toFields())
 
-    // this should be (b - l) * G + (r_a - r_l) * H
+    // this should be (b - l) * G + (r_a - r_l) * H => if (r_a < _rl) (r_a - r_l) = (r_a + field_modulus - r_l)
     const netCommitment = publicInputs.assetsCommitment.add(publicInputs.liabilitiesCommitment.neg())
-    // this is (b - l) * G + (r_a - r_l) * H
+    // this is (b - l) * G + (r_a - r_l) * H 
     const computedNetCommitment = Group.generator.scale(assetsValue.sub(liabilityValue)).add(blindingPoint.scale(assetBlindingFactor.sub(liabiltiesBlindingFactor)))
 
     // check that the net commitment is equal to the computed net commitment

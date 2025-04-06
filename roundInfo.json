@@ -1,0 +1,10 @@
+{
+  "blindingFactor": "1048575",
+  "assetTx": "https://minascan.io/devnet/tx/5JvRq3kzpYT6imaJjUxirE72gRvaQnjMUomQEvtRZtV5oQNgKvKK?type=zk-tx",
+  "selectorTx": "https://minascan.io/devnet/tx/5JvBAJF1WTE8hox1wX8xDZfwxjn6cpgk3oHDUQb6FCNzLPfMUeBa?type=zk-tx",
+  "totalAssetValue": "85995700000",
+  "assetCommitment": {
+    "x": "27139896956341964526536501865085671150781441234854448938348621020143554814761",
+    "y": "6492132904206409642499207322836930987599563378577151490656450222524123690025"
+  }
+}

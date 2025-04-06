@@ -101,12 +101,17 @@ export class Bytes32 {
 
 
 // maxVal is the maximum value of the random number if it is 20 then number will be between 0 and 2^20
-export function randomBytes32(_maxVal?: number): Bytes32 {
+// number is between 2^_min_val and 2^_maxVal
+export function randomBytes32(_maxVal?: number, _mina_val?: number): Bytes32 {
     const bits: boolean[] = Array.from({ length: 256 }, () => Math.random() < 0.5);
     // Ensure the MSB (most significant bit) is 0 to make it positive because the circuits were acting strange with negative numbers
     const maxVal = _maxVal ?? 255;
     for (let i = 255; i >= maxVal; i--) {
         bits[i] = false;
+    }
+    const minVal = _mina_val ?? 0;
+    for (let i = 0; i < minVal; i++) {
+        bits[i] = true;
     }
     return new Bytes32(bits);
 }

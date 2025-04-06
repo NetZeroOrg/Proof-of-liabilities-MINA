@@ -37,22 +37,25 @@ export async function createTreeAndSetContracts(
     saltS?: bigint,
 ) {
     console.log(redisConnectionURL)
-    const feePayerPrivKey = process.env.FEEPAYER_PRIVATE_KEY;
-    if (!feePayerPrivKey)
-        throw Error('Missing FEEPAYER_PRIVATE_KEY environment variable.');
 
     const networkId = process.env.NETWORK_ID;
     if (!networkId)
         throw Error('Missing NETWORK_ID environment variable.');
 
+    const feePayerPrivKey = 'EKEc7LWnkjhsxPDTpkmWGvHfRcMSrPVfwi9CoRTV1mgefCxtZAeb';
+    console.log(feePayerPrivKey)
+    if (!feePayerPrivKey)
+        throw Error('Missing FEEPAYER_PRIVATE_KEY environment variable.');
+
     const MINA_NETWORK_URL = process.env.MINA_NETWORK_URL;
     if (!MINA_NETWORK_URL)
         throw Error('Missing MINA_NETWORK_URL environment variable.');
 
-    const LIABILIITES_CONTRACT_ADDRESS = process.env.LIABILIITES_CONTRACT_ADDRESS;
-    if (!LIABILIITES_CONTRACT_ADDRESS)
-        throw Error('Missing LIABILIITES_CONTRACT_ADDRESS environment variable.');
+    const LIABILITIES_CONTRACT_ADDRESS = process.env.LIABILITIES_CONTRACT_ADDRESS;
+    if (!LIABILITIES_CONTRACT_ADDRESS)
+        throw Error('Missing LIABILITIES_CONTRACT_ADDRESS environment variable.');
     console.time("Full flow")
+    console.log(userDataFile)
     const csvData = readFileSync(userDataFile, "utf-8");
     console.log(csvData)
     const rows = csvData.split("\n").filter(row => row.trim() !== "");
@@ -81,7 +84,7 @@ export async function createTreeAndSetContracts(
 
 
     console.time("Tree Build Time")
-    const [store,] = await treeBuilder.buildSingleThreaded(rangeCheckProgram, true)
+    const [store,] = await treeBuilder.buildSingleThreaded(rangeCheckProgram, true, redisConnectionURL)
     console.timeEnd("Tree Build Time")
 
     console.time("Save Time")
@@ -115,12 +118,14 @@ export async function createTreeAndSetContracts(
     const feepayerAddress = feepayerKey.toPublicKey();
     console.log('Fee payer address:', feepayerAddress);
 
-    const zkApp = new NetZeroLiabilitiesVerifier(PublicKey.fromBase58(LIABILIITES_CONTRACT_ADDRESS))
-    await fetchAccount({ publicKey: LIABILIITES_CONTRACT_ADDRESS });
+    const zkApp = new NetZeroLiabilitiesVerifier(PublicKey.fromBase58(LIABILITIES_CONTRACT_ADDRESS))
+    await fetchAccount({ publicKey: LIABILITIES_CONTRACT_ADDRESS });
     // compile the contract and programs
     await InclusionProofProgram.compile()
     await NetZeroLiabilitiesVerifier.compile()
 
+    console.log(store.root.commitment.toJSON())
+    console.log(store.root.hash.toJSON())
     const tx = await Mina.transaction(
         { sender: feepayerAddress, fee },
         async () => {
@@ -151,10 +156,10 @@ export async function createTreeAndSetContracts(
     if (!process.env.EXCHANGE_ID) {
         throw new Error("Missing EXCHANGE_ID environment variable.");
     }
-    callNetZeroBackend(`/exhanges/${process.env.EXCHANGE_ID}/round/liabilities/end`, {
-        endTime: new Date().toISOString(),
-        txnUrl: deployTxUrl,
-    })
+    // callNetZeroBackend(`/exhanges/${process.env.EXCHANGE_ID}/round/liabilities/end`, {
+    //     endTime: new Date().toISOString(),
+    //     txnUrl: deployTxUrl,
+    // })
 }
 
 export const loadStoreAndSetContracts = async (
@@ -172,12 +177,16 @@ export const loadStoreAndSetContracts = async (
     if (!MINA_NETWORK_URL)
         throw Error('Missing MINA_NETWORK_URL environment variable.');
 
-    const LIABILIITES_CONTRACT_ADDRESS = process.env.LIABILIITES_CONTRACT_ADDRESS;
-    if (!LIABILIITES_CONTRACT_ADDRESS)
+    const LIABILITIES_CONTRACT_ADDRESS = process.env.LIABILITIES_CONTRACT_ADDRESS;
+    if (!LIABILITIES_CONTRACT_ADDRESS)
         throw Error('Missing CONTRACT_ADDRESS environment variable.');
     const ROOT_PROOF_PATH = process.env!.ROOT_PROOF_PATH;
     if (!ROOT_PROOF_PATH)
         throw Error('Missing ROOT_PROOF_PATH environment variable.');
+    console.log(redisConnectionURL)
+    // compile the contract and programs
+    await InclusionProofProgram.compile()
+    await NetZeroLiabilitiesVerifier.compile()
     const store = await Store.loadFromDB(ROOT_PROOF_PATH, redisConnectionURL);
     const rootProof = store.root.rangeProof;
     if (!rootProof) throw new Error("No root proof found")
@@ -201,11 +210,8 @@ export const loadStoreAndSetContracts = async (
     const feepayerAddress = feepayerKey.toPublicKey();
     console.log('Fee payer address:', feepayerAddress.toBase58());
 
-    const zkApp = new NetZeroLiabilitiesVerifier(PublicKey.fromBase58(LIABILIITES_CONTRACT_ADDRESS))
-    await fetchAccount({ publicKey: LIABILIITES_CONTRACT_ADDRESS });
-    // compile the contract and programs
-    await InclusionProofProgram.compile()
-    await NetZeroLiabilitiesVerifier.compile()
+    const zkApp = new NetZeroLiabilitiesVerifier(PublicKey.fromBase58(LIABILITIES_CONTRACT_ADDRESS))
+    await fetchAccount({ publicKey: LIABILITIES_CONTRACT_ADDRESS });
     const tx = await Mina.transaction(
         { sender: feepayerAddress, fee },
         async () => {
@@ -237,15 +243,14 @@ export const loadStoreAndSetContracts = async (
     if (!process.env.EXCHANGE_ID) {
         throw new Error("Missing EXCHANGE_ID environment variable.");
     }
-    callNetZeroBackend(`/exhanges/${process.env.EXCHANGE_ID}/round/liabilities/end`, {
-        endTime: new Date().toISOString(),
-        txnUrl: deployTxUrl,
-    })
+    // callNetZeroBackend(`/exhanges/${process.env.EXCHANGE_ID}/round/liabilities/end`, {
+    //     endTime: new Date().toISOString(),
+    //     txnUrl: deployTxUrl,
+    // })
 
 }
 
 interface Args {
-    userDataFile: string;
     loadStore: boolean;
     redisConnectionURL?: string;
     masterSecret?: string;
@@ -254,11 +259,6 @@ interface Args {
 }
 
 const argv = yargs(hideBin(process.argv))
-    .option("userDataFile", {
-        type: "string",
-        description: "The .csv file containing the user data",
-        default: process.env.USER_DATA_FILE ?? "",
-    })
     .option("loadStore", {
         type: "boolean",
         description: "Load the store from the Redis database",
@@ -294,17 +294,17 @@ await (async () => {
         if (!process.env.EXCHANGE_ID) {
             throw new Error("Missing EXCHANGE_ID environment variable.");
         }
-        callNetZeroBackend(`/exhanges/${process.env.EXCHANGE_ID}/round/liabilities/start`, {})
+        // callNetZeroBackend(`/exhanges/${process.env.EXCHANGE_ID}/round/liabilities/start`, {})
         if (argv.loadStore) {
             console.log("Loading store from Redis database...");
             await loadStoreAndSetContracts(process.env.REDIS_URL);
             console.log("Store loaded and contracts set successfully.");
         } else {
-            if (!argv.userDataFile) {
-                throw new Error("Please provide a user data file.");
-            }
+            const userDataFile = process.env.USER_DATA_FILE;
+            if (!userDataFile)
+                throw Error('Missing USER_DATA_FILE environment variable.');
             await createTreeAndSetContracts(
-                argv.userDataFile,
+                userDataFile,
                 argv.redisConnectionURL,
                 argv.masterSecret ? BigInt(argv.masterSecret) : undefined,
                 argv.saltB ? BigInt(argv.saltB) : undefined,

@@ -200,8 +200,9 @@ const generateProofOfAssetsAndVerifyOnChain = async () => {
         balances: minaBalances,
     })
     const blidingFactor = randomBytes32(15).toField()
+    //TODO: remove the min limit after demo
     const minaPrivateInput = new ProofOfAssetsPrivateInput({
-        blidingFactor: randomBytes32(15).toField(),
+        blidingFactor: randomBytes32(15, 20).toField(),
         selectorArray: createSelectorArray(minaAddresses, minaPks),
     })
     console.time('proof of assets generation');
@@ -249,9 +250,9 @@ const generateProofOfAssetsAndVerifyOnChain = async () => {
 
 
     // call netzero backend
-    callNetZeroBackend(`/exchange/${process.env.EXCHANGE_ID}/round/assets/end`, {
-        endTime: new Date().toISOString(),
-        txnUrl: txUrl,
-    })
+    // callNetZeroBackend(`/exchange/${process.env.EXCHANGE_ID}/round/assets/end`, {
+    //     endTime: new Date().toISOString(),
+    //     txnUrl: txUrl,
+    // })
 }
 generateProofOfAssetsAndVerifyOnChain()
