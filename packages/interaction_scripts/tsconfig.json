@@ -1,0 +1,36 @@
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "display": "Tree",
+    "compilerOptions": {
+        "strictNullChecks": true,
+        "lib": [
+            "es2020",
+        ],
+        "target": "ES2020",
+        "module": "ES2022",
+        "declaration": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "moduleResolution": "node",
+        "noImplicitAny": true,
+        "allowJs": true,
+        "esModuleInterop": true,
+        "strict": true,
+        "alwaysStrict": true,
+        "declarationMap": true,
+        "strictFunctionTypes": true,
+        "types": [
+            "node",
+        ],
+        "skipLibCheck": true,
+        "outDir": "dist"
+    },
+    "files.exclude": [
+        "**/*.test.ts",
+        "**/*.spec.ts",
+        "**/*.test.js",
+        "**/*.spec.js",
+        "**/node_modules",
+        "**/dist"
+    ],
+}
