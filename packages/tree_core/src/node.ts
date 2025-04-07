@@ -46,6 +46,10 @@ async function newPaddingNode<N extends number>(
 }
 
 async function merge(leftChild: Node, rightChild: Node): Promise<Node> {
+    console.log("leftChild: ", leftChild.liabilities)
+    console.log("rightChild: ", rightChild.liabilities)
+    console.log("leftChild: ", leftChild.blindingFactor)
+    console.log("rightChild: ", rightChild.blindingFactor)
     const liabilities = leftChild.liabilities + rightChild.liabilities
     const blidingFactor = leftChild.blindingFactor + rightChild.blindingFactor
 
@@ -54,6 +58,11 @@ async function merge(leftChild: Node, rightChild: Node): Promise<Node> {
     if (leftChild.rangeProof == null || rightChild.rangeProof == null) {
         throw new Error("One of the children does not have a range proof")
     }
+    // sanity check
+    const computedCommitment = Group.generator.scale(liabilities).add(Poseidon.hashToGroup(Group.generator.toFields()).scale(blidingFactor));
+    console.log("computedCommitment: ", computedCommitment.toJSON())
+    console.log("commitment: ", commitment.toJSON())
+    console.log(commitment.equals(computedCommitment).toJSON())
     const { proof } = await rangeCheckProgram.merge(leftChild.rangeProof, rightChild.rangeProof, Field(liabilities));
     return { liabilities, blindingFactor: blidingFactor, commitment, hash, rangeProof: proof };
 }

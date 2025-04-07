@@ -9,6 +9,8 @@ WORKDIR /app
 COPY . ./
 
 RUN npm i -g pnpm
+# Download zk-app cli for key management
+RUN pnpm i -g zk-app
 
 RUN pnpm install
 RUN pnpm build

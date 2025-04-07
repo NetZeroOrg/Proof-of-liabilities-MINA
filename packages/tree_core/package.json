@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@babel/preset-env": "^7.26.9",
-    "@netzero/circuits": "workspace:*",
+    "@netzero/circuits": "^0.0.4",
     "@netzero/contracts": "*",
     "@netzero/por_circuits": "workspace:*",
     "@repo/eslint-config": "workspace:*",

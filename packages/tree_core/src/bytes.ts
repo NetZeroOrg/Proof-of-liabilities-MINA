@@ -88,12 +88,25 @@ export class Bytes32 {
 
         return new Bytes32(bits);
     }
+
+    shrink(_maxVal?: number): Bytes32 {
+        const bits: boolean[] = new Array(256).fill(false);
+        const maxVal = _maxVal ?? 255;
+        for (let i = 0; i < maxVal; i++) {
+            bits[i] = this.data[i]!;
+        }
+        return new Bytes32(bits);
+    }
 }
 
 
-export function randomBytes32(): Bytes32 {
+// maxVal is the maximum value of the random number if it is 20 then number will be between 0 and 2^20
+export function randomBytes32(_maxVal?: number): Bytes32 {
     const bits: boolean[] = Array.from({ length: 256 }, () => Math.random() < 0.5);
     // Ensure the MSB (most significant bit) is 0 to make it positive because the circuits were acting strange with negative numbers
-    bits[255] = false;
+    const maxVal = _maxVal ?? 255;
+    for (let i = 255; i >= maxVal; i--) {
+        bits[i] = false;
+    }
     return new Bytes32(bits);
 }

@@ -3,8 +3,9 @@ import { MerkleWitness, NodeContent, UserParams } from "./types.js";
 
 
 export const inclusionProof = async (witness: MerkleWitness, userParams: UserParams): Promise<{ publicOutput: NodeContent }> => {
+    const generator = Group.generator
     // the bliding point for pedersen commitment
-    const blindingPoint = Group.generator.scale(Poseidon.hash(Group.generator.toFields()))
+    const blindingPoint = Poseidon.hashToGroup(generator.toFields())
 
     let liabilities = Field(0)
     // compute the liabilities of the user
@@ -16,7 +17,7 @@ export const inclusionProof = async (witness: MerkleWitness, userParams: UserPar
     // assert that the net liability is positive
     Gadgets.rangeCheck64(liabilities)
 
-    let rootComm = Group.generator.scale(liabilities).add(blindingPoint.scale(userParams.blindingFactor))
+    let rootComm = generator.scale(liabilities).add(blindingPoint.scale(userParams.blindingFactor))
     let rootHash = Poseidon.hash([Field(10810197102n), Field(userParams.userId), userParams.userSecret])
 
     //TODO: should this be here? doesn't `Provable.Array` always garantee the length will be 32?

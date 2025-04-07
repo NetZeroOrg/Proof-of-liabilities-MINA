@@ -10,12 +10,12 @@ export class PedersenCommitment {
 
     static get blindingBase(): Group {
         const gen = Group.generator;
-        const genHash = Poseidon.hash(gen.toFields());
-        const baseBlinding = gen.scale(genHash)
+        const baseBlinding = Poseidon.hashToGroup(gen.toFields())
         return baseBlinding;
     }
 
     static defaultCommitment(baseVal: bigint | Field, blidingVal: bigint | Field): Group {
-        return PedersenCommitment.base.scale(baseVal).add(PedersenCommitment.blindingBase.scale(blidingVal));
+        console.log("Computed commitment: with params", baseVal, blidingVal);
+        return PedersenCommitment.base.scale(baseVal).add(this.blindingBase.scale(blidingVal));
     }
 }

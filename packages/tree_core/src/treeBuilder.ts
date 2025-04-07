@@ -208,9 +208,13 @@ export class TreeBuilder<N extends number> {
         for (let i = 0; i < this.records.length; i++) {
             const newXCord = this.xCordGen.genXCord();
             const nodePos = new NodePosition(newXCord, zeroHeight);
-            const masterSecret = kdf(null, Bytes32.fromBigInt(BigInt(this.records[i]!.user)), this.treeParams.masterSecret);
-            const blindingFactor = kdf(this.treeParams.saltB, null, masterSecret)
-            const userSecret = kdf(this.treeParams.saltS, null, masterSecret)
+            // limit this to 2^15 as this causes precision errors will fix later
+            const masterSecret = kdf(null, Bytes32.fromBigInt(BigInt(this.records[i]!.user)), this.treeParams.masterSecret).shrink(15);
+            console.log("Master secret: ", masterSecret.toString())
+            const blindingFactor = kdf(this.treeParams.saltB, null, masterSecret).shrink(15)
+            console.log("Blinding factor: ", blindingFactor.toString())
+            const userSecret = kdf(this.treeParams.saltS, null, masterSecret).shrink(15)
+            console.log("User secret: ", userSecret.toString())
             recordMap.set(this.records[i]!.user, nodePos)
             const leafNode = await newLeaf({ record: this.records[i]!, compileRangeCheckProgram, userSecret, blindingFactor })
             leafNodes.push([nodePos, leafNode])
@@ -219,9 +223,9 @@ export class TreeBuilder<N extends number> {
 
 
         const paddingNodeFn = (position: NodePosition): newPaddingNodeParams => {
-            const padSecret = kdf(null, Bytes32.fromNodePos(position), this.treeParams.masterSecret)
-            const blindingFactor = kdf(this.treeParams.saltB, null, padSecret)
-            const userSecret = kdf(this.treeParams.saltS, null, padSecret)
+            const padSecret = kdf(null, Bytes32.fromNodePos(position), this.treeParams.masterSecret).shrink(15);
+            const blindingFactor = kdf(this.treeParams.saltB, null, padSecret).shrink(15)
+            const userSecret = kdf(this.treeParams.saltS, null, padSecret).shrink(15)
             return { userSecret, blindingFactor, compiledRangeCheckProgram: compileRangeCheckProgram, position }
         }
 
