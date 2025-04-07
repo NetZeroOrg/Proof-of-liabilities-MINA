@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-cd apps/backend-contracts || { echo "Failed to change directory to apps/backend-contracts"; exit 1; }
+cd apps/backend-contract || { echo "Failed to change directory to apps/backend-contract"; exit 1; }
 echo "Deploying contracts..."
 if ! pnpm run deploy; then
     echo "Error: Contract deployment failed."

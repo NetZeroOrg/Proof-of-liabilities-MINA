@@ -11,10 +11,12 @@ COPY . ./
 
 RUN npm i -g pnpm
 # Download zk-app cli for key management
-RUN pnpm i -g zk-app
+RUN npm i -g zk-app
 
 RUN pnpm install
 RUN pnpm build
+
+RUN mkdir /app/apps/backend-contract/keys/
 
 WORKDIR /app/apps/backend
 CMD [ "pnpm" , "start" ]
