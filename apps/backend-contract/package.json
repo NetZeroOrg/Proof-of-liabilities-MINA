@@ -21,7 +21,7 @@
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --config jest.config.ts",
     "testw": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
     "lint": "npx eslint src/* --fix",
-    "deploy": "tsc && node --env-file .env build/deploy.js"
+    "deploy": "tsc && node --env-file ../../.env build/deploy.js"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.16.4",
