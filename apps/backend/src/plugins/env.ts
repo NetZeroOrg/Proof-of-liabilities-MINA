@@ -11,6 +11,7 @@ export interface EnvConfig {
     EXCHANGE_ID: string;
     NET_ZERO_API_KEY: string;
     ASSET_DATA_FILE: string;
+    SOLVENCY_PROOF_PATH: string;
 }
 
 const schema = {
@@ -26,7 +27,8 @@ const schema = {
         NETZERO_BACKEND_VERIFY_API: { type: 'string' },
         EXCHANGE_ID: { type: 'string' },
         NET_ZERO_API_KEY: { type: 'string' },
-        ASSET_DATA_FILE: { type: 'string' }
+        ASSET_DATA_FILE: { type: 'string' },
+        SOLVENCY_PROOF_PATH: { type: 'string' }
     }
 };
 

@@ -49,6 +49,68 @@ const root: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
     reply.send(publicKeys);
   })
+
+
+  fastify.get("/downloadProof", async function (request, reply) {
+    const path
+      = fastify.config.SOLVENCY_PROOF_PATH
+    try {
+      const proofData = JSON.parse(await readFile(path, "utf-8"));
+      reply.send(proofData);
+    } catch (error) {
+      reply.status(500).send({ error: "Failed to read or parse the solvency proof file." });
+    }
+  })
+
+  fastify.post("/dispute", async function (request, reply) {
+    const { user, assetAmounts, description, txnUrl } = request.body as {
+      user: string,
+      assetAmounts: { [key: string]: number },
+      description: string,
+      txnUrl: string
+    }
+    const dispFileName = path.join(
+      path.dirname(fastify.config.SOLVENCY_PROOF_PATH),
+      'disputes.json'
+    );
+    // Read existing disputes or create empty array if file doesn't exist
+    let disputes = [];
+    try {
+      const fileContent = await readFile(dispFileName, "utf-8");
+      disputes = JSON.parse(fileContent);
+    } catch (error) {
+      // File doesn't exist or is invalid, start with empty array
+      // Create the file with an empty array
+      await fs.promises.writeFile(
+        dispFileName,
+        JSON.stringify([], null, 2),
+        "utf-8"
+      );
+    }
+
+    // Add new dispute with timestamp
+    const newDispute = {
+      user,
+      assetAmounts,
+      description,
+      txnUrl,
+      timestamp: new Date().toISOString()
+    };
+    disputes.push(newDispute);
+
+    // Write updated disputes back to file
+    await fs.promises.writeFile(
+      dispFileName,
+      JSON.stringify(disputes, null, 2),
+      "utf-8"
+    );
+
+    reply.send({
+      success: true,
+      message: "Dispute recorded successfully"
+    });
+
+  })
 }
 
 export default root;

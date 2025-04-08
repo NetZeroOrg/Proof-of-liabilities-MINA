@@ -6,7 +6,6 @@ RUN apk add --no-cache libc6-compat
 RUN apk add vim bash jq
 
 WORKDIR /app
-
 COPY . ./
 RUN cp .env.sample .env
 RUN mkdir /app/apps/backend-contract/keys/
