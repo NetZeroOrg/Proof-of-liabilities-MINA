@@ -1,6 +1,7 @@
 #!/bin/bash
 set -euo pipefail
-
+pwd
+# Clear the .env file
 cd apps/backend-contract || { echo "Failed to change directory to apps/backend-contract"; exit 1; }
 echo "Deploying contracts..."
 if ! pnpm run deploy; then
@@ -8,12 +9,10 @@ if ! pnpm run deploy; then
     exit 1
 fi
 echo "Copying contracts addresses... to the env file"
-
-key_dir="./key"
+pwd
+key_dir="keys/"
 env_file="../../.env"
 
-# Clear the .env file
-> "$env_file" || { echo "Failed to clear the .env file"; exit 1; }
 
 # List of known files
 files=("assetVerifier.json" "liabilitiesVerifier.json" "solvencyVerifier.json")
@@ -39,7 +38,7 @@ echo "Contracts deployed successfully."
 
 echo "Setting Params on solvency contract"
 cd ../.. || { echo "Failed to change directory to project root"; exit 1; }
-
+pwd
 if ! node --env-file .env packages/interaction_scripts/dist/src/solvency.js set-contracts; then
     echo "Error: Failed to set params on solvency contract."
     exit 1
