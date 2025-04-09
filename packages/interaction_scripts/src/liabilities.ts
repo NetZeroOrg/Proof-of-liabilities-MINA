@@ -42,7 +42,7 @@ export async function createTreeAndSetContracts(
     if (!networkId)
         throw Error('Missing NETWORK_ID environment variable.');
 
-    const feePayerPrivKey = 'EKEc7LWnkjhsxPDTpkmWGvHfRcMSrPVfwi9CoRTV1mgefCxtZAeb';
+    const feePayerPrivKey = process.env.FEEPAYER_PRIVATE_KEY;
     console.log(feePayerPrivKey)
     if (!feePayerPrivKey)
         throw Error('Missing FEEPAYER_PRIVATE_KEY environment variable.');

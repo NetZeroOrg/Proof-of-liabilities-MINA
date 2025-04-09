@@ -150,72 +150,68 @@ const readProofofAsset = async (assetProofPath: string): Promise<ProofOfAsset> =
 
 
 export const proofOfSolencyRoutine = async () => {
-    // const assetProofPath = process.env.ASSET_PROOF_PATH;
-    // if (!assetProofPath)
-    //     throw Error('Missing ASSET_PROOF_PATH environment variable.');
+    const assetProofPath = process.env.ASSET_PROOF_PATH;
+    if (!assetProofPath)
+        throw Error('Missing ASSET_PROOF_PATH environment variable.');
 
-    // const rootProofPath = process.env.ROOT_PROOF_PATH;
-    // if (!rootProofPath)
-    //     throw Error('Missing ROOT_PROOF_PATH environment variable.');
+    const rootProofPath = process.env.ROOT_PROOF_PATH;
+    if (!rootProofPath)
+        throw Error('Missing ROOT_PROOF_PATH environment variable.');
 
-    // const infoFilePath = process.env.INFO_FILE_PATH;
-    // if (!infoFilePath)
-    //     throw Error('Missing INFO_FILE_PATH environment variable.');
+    const infoFilePath = process.env.INFO_FILE_PATH;
+    if (!infoFilePath)
+        throw Error('Missing INFO_FILE_PATH environment variable.');
 
-    // const redisConnectionUrl = process.env.REDIS_URL;
-    // console.log("Redis connection URL: ", redisConnectionUrl)
+    const redisConnectionUrl = process.env.REDIS_URL;
+    console.log("Redis connection URL: ", redisConnectionUrl)
 
-    // const { assetBlindingFactor, liabilitiesBlidingFactor, assetValue, liabilitiesValue, liabilitiesCommitment, assetCommitment } = await getInputs(infoFilePath, redisConnectionUrl);
-    // console.log("liabilitiesCommitment", liabilitiesCommitment.toJSON())
-    // const computedLiabilitiesCommitment = Group.generator.scale(liabilitiesValue).add(Poseidon.hashToGroup(Group.generator.toFields()).scale(liabilitiesBlidingFactor));
-    // console.log("computedLiabilitiesCommitment", computedLiabilitiesCommitment.toJSON())
+    const { assetBlindingFactor, liabilitiesBlidingFactor, assetValue, liabilitiesValue, liabilitiesCommitment, assetCommitment } = await getInputs(infoFilePath, redisConnectionUrl);
+    console.log("liabilitiesCommitment", liabilitiesCommitment.toJSON())
+    const computedLiabilitiesCommitment = Group.generator.scale(liabilitiesValue).add(Poseidon.hashToGroup(Group.generator.toFields()).scale(liabilitiesBlidingFactor));
+    console.log("computedLiabilitiesCommitment", computedLiabilitiesCommitment.toJSON())
 
-    // const computedAsssetCommitment = Group.generator.scale(assetValue).add(Poseidon.hashToGroup(Group.generator.toFields()).scale(assetBlindingFactor));
-    // console.log("computedAsssetCommitment", computedAsssetCommitment.toJSON())
-    // console.log(
-    //     "assetCommitment",
-    //     assetCommitment.toJSON(),
-    // )
-    // const rootProof = await readRootProof(rootProofPath);
-    // const assetProof = await readProofofAsset(assetProofPath);
+    const computedAsssetCommitment = Group.generator.scale(assetValue).add(Poseidon.hashToGroup(Group.generator.toFields()).scale(assetBlindingFactor));
+    console.log("computedAsssetCommitment", computedAsssetCommitment.toJSON())
+    console.log(
+        "assetCommitment",
+        assetCommitment.toJSON(),
+    )
+    const rootProof = await readRootProof(rootProofPath);
+    const assetProof = await readProofofAsset(assetProofPath);
 
 
-    // const pubIn = new ProofOfSolvencyPublicInputs({
-    //     liabilitiesCommitment,
-    //     assetsCommitment: assetCommitment,
-    // })
-    // const { proof } = await proofOfSolvencyProgram.proofOfSolvency(
-    //     pubIn,
-    //     assetProof,
-    //     rootProof,
-    //     liabilitiesBlidingFactor,
-    //     assetBlindingFactor,
-    //     liabilitiesValue,
-    //     assetValue
-    // )
+    const pubIn = new ProofOfSolvencyPublicInputs({
+        liabilitiesCommitment,
+        assetsCommitment: assetCommitment,
+    })
+    const { proof } = await proofOfSolvencyProgram.proofOfSolvency(
+        pubIn,
+        assetProof,
+        rootProof,
+        liabilitiesBlidingFactor,
+        assetBlindingFactor,
+        liabilitiesValue,
+        assetValue
+    )
 
-    // save proof to file for serving
-    // const proofFilePath = process.env.PROOF_FILE_PATH || 'proof_of_solvency.json';
-    // try {
-    //     writeFileSync(proofFilePath, JSON.stringify(proof.toJSON(), null, 2));
-    //     console.log(`Proof saved to file: ${proofFilePath}`);
-    // } catch (error) {
-    //     console.error('Error saving proof to file:', error);
-    // }
+    const proofFilePath = process.env.PROOF_FILE_PATH || 'proof_of_solvency.json';
+    try {
+        writeFileSync(proofFilePath, JSON.stringify(proof.toJSON(), null, 2));
+        console.log(`Proof saved to file: ${proofFilePath}`);
+    } catch (error) {
+        console.error('Error saving proof to file:', error);
+    }
 
     // Read the proof from the JSON file
     const proofJsonFilePath = process.env.PROOF_JSON_FILE_PATH || 'proof_of_solvency.json';
     console.log(zkApp.proofOfLiabilitiesVerifier.get().toBase58())
     console.log(zkApp.proofOfAssetsVerifier.get().toBase58())
     try {
-        const proofJsonFile = readFileSync(proofJsonFilePath, 'utf8');
-        const proofJson = JSON.parse(proofJsonFile);
-        const savedProof = await ProofOfSolvency.fromJSON(proofJson);
         const tx = await Mina.transaction(
             { sender: feepayerAddress, fee },
             async () => {
                 console.log("verifying selector proof")
-                await zkApp.verifyProofOfSolvency(savedProof)
+                await zkApp.verifyProofOfSolvency(proof)
             })
         console.log("proving transaction")
         await tx.prove()

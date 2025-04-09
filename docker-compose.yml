@@ -5,8 +5,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    volumes:
-      - .:/app
     ports:
       - "16001:16001" # Adjust port as needed for your backend
     env_file:
@@ -27,7 +25,6 @@ services:
       - backend
 
 volumes:
-  node_modules:
   redis-data:
 
 

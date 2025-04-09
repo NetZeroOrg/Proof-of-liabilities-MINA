@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import csv from 'csv-parser';
 import { readdir, readFile } from 'fs/promises';
+import { fileURLToPath } from 'url';
 
 const root: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   let assets: string[] = []
@@ -29,7 +30,9 @@ const root: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   })
 
   fastify.get('/contracts', async function (request, reply) {
-    const keysDir = path.join(import.meta.dirname, "../../..", "backend-contract", "keys");
+    const __filename = fileURLToPath(import.meta.url)
+    const __dirname = path.dirname(__filename)
+    const keysDir = path.join(__dirname, "../../..", "backend-contract", "keys");
 
     const files = await readdir(keysDir);
     const publicKeys: {
