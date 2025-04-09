@@ -33,7 +33,11 @@ const schema = {
 const options = {
     confKey: 'config', // This will attach your config to fastify instance
     schema: schema,
-    data: process.env // Load env vars from process.env
+    data: process.env, // Load env vars from process.env
+    dotenv: {
+        path: '../../.env',
+        debug: true
+    }
 };
 
 export default fp<{}>(async (fastify: FastifyInstance) => {
